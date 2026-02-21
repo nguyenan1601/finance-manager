@@ -32,6 +32,11 @@ export const vi = {
     filter: "Bộ lọc",
     noTransactions: "Không tìm thấy giao dịch nào.",
     other: "Khác",
+    scanBill: "Quét hóa đơn",
+    uploadBill: "Tải ảnh hóa đơn",
+    scanning: "Đang phân tích hóa đơn...",
+    scanSuccess: "Đã trích xuất thông tin thành công!",
+    viewAll: "Xem tất cả",
   },
   home: {
     quickAiInput: "Nhập liệu nhanh bằng AI",
@@ -120,6 +125,11 @@ export const en = {
     filter: "Filter",
     noTransactions: "No transactions found.",
     other: "Other",
+    scanBill: "Scan Receipt",
+    uploadBill: "Upload Receipt",
+    scanning: "Analyzing receipt...",
+    scanSuccess: "Information extracted successfully!",
+    viewAll: "View all",
   },
   home: {
     quickAiInput: "Quick AI Input",

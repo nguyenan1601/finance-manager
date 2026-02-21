@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter, Search, Download, Loader2 } from "lucide-react";
 import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog";
+// import { BillScanner } from "@/components/dashboard/bill-scanner";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/db";
@@ -33,6 +34,7 @@ interface Transaction {
 }
 
 import { useTranslation } from "@/hooks/use-translation";
+import { BillScanner } from "@/components/dashboard/bill-scanner";
 
 export default function TransactionsPage() {
   const { t, lang } = useTranslation();
@@ -158,6 +160,7 @@ export default function TransactionsPage() {
               <Download className="mr-2 h-4 w-4" />
               {t("common.export")}
             </Button>
+            {/* <BillScanner onSuccess={() => fetchTransactions()} /> */}
             <Button
               size="sm"
               className="rounded-lg shadow-lg shadow-primary/20"

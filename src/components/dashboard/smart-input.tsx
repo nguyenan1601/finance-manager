@@ -35,22 +35,38 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
 
     setIsLoading(true);
     setSuccess(false);
+
+    // Abort controller with 10s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
     try {
       const resp = await fetch("/api/ai/parse-transaction", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
           currentDate: new Date().toLocaleDateString("en-CA"),
         }),
+        signal: controller.signal,
       });
       const data = await resp.json();
       if (data.error) throw new Error(data.details || data.error);
       setSuggestion(data);
     } catch (error: unknown) {
       console.error(error);
-      const message = error instanceof Error ? error.message : String(error);
-      alert(`${lang === "vi" ? "Lỗi AI" : "AI Error"}: ${message}`);
+      if (error instanceof DOMException && error.name === "AbortError") {
+        alert(
+          lang === "vi"
+            ? "AI phản hồi quá lâu (>10s). Vui lòng thử lại."
+            : "AI took too long (>10s). Please try again.",
+        );
+      } else {
+        const message = error instanceof Error ? error.message : String(error);
+        alert(`${lang === "vi" ? "Lỗi AI" : "AI Error"}: ${message}`);
+      }
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };
