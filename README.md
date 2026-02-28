@@ -59,15 +59,41 @@ yarn install
 
 ### 3. Cấu hình biến môi trường
 
-Tạo file `.env` ở thư mục gốc và thêm các thông tin sau:
+Tạo file `.env` ở thư mục gốc của `finance-app` và thêm các thông tin sau:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-GOOGLE_GENERATIVE_AI_KEY=your_gemini_api_key
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
 ```
 
-### 4. Chạy ứng dụng
+### 4. Thiết lập Database (Supabase)
+
+Dự án này yêu cầu một cấu trúc bảng cụ thể trên Supabase. Bạn có hai cách để thiết lập:
+
+#### Cách 1: Sử dụng SQL Editor (Nhanh nhất)
+
+1. Truy cập vào **SQL Editor** trong Supabase Dashboard.
+2. Mở file `supabase/schema.sql` trong mã nguồn dự án.
+3. Copy toàn bộ nội dung và dán vào SQL Editor, sau đó nhấn **Run**.
+
+#### Cách 2: Sử dụng Supabase CLI
+
+Nếu bạn đã cài đặt Supabase CLI, hãy chạy lệnh sau:
+
+```bash
+npx supabase db push
+```
+
+### 5. Cấu hình Xác thực (Auth)
+
+Để tính năng đăng nhập (Email/Google) hoạt động:
+
+1. Vào **Authentication** -> **URL Configuration**.
+2. Thêm `http://localhost:3000/**` vào danh sách **Redirect URLs**.
+3. Nếu dùng Google Login, hãy cấu hình Google Provider trong phần **Auth Providers** với Client ID và Secret từ Google Cloud Console.
+
+### 6. Chạy ứng dụng
 
 ```bash
 npm run dev
