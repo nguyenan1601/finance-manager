@@ -18,7 +18,6 @@ interface ParsedTransaction {
   category: string;
   note: string;
   date: string;
-  exchangeRate?: number;
 }
 
 import { useTranslation } from "@/hooks/use-translation";
@@ -127,12 +126,6 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
     }
   };
 
-  // USD Conversion Logic
-  const usdValue =
-    suggestion?.amount && suggestion?.exchangeRate
-      ? suggestion.amount * suggestion.exchangeRate
-      : null;
-
   return (
     <div className="w-full space-y-4">
       <div className="relative group">
@@ -216,18 +209,6 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
                     VND
                   </span>
                 </div>
-
-                {usdValue !== null && (
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-background/50 rounded-lg border border-primary/10">
-                    <span className="text-lg font-bold text-primary">
-                      ≈ $
-                      {usdValue.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                )}
               </div>
               <p className="text-sm text-muted-foreground italic">
                 &quot;{suggestion.note}&quot;
