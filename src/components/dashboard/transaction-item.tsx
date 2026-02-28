@@ -1,5 +1,6 @@
 import { LucideIcon, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface TransactionItemProps {
   name: string;
@@ -20,6 +21,7 @@ export function TransactionItem({
   icon: Icon,
   className,
 }: TransactionItemProps) {
+  const { lang } = useTranslation();
   const isIncome = type === "income";
 
   return (
@@ -60,8 +62,7 @@ export function TransactionItem({
             isIncome ? "text-emerald-600" : "text-rose-600",
           )}
         >
-          {isIncome ? "+" : "-"}
-          {amount} ₫
+          {amount}
         </p>
       </div>
     </div>

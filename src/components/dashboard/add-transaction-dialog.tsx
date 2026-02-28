@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 import { db, Category } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/use-translation";
 
 const NOTE_MAX_LENGTH = 100;
 const MAX_AMOUNT = 10000000000; // 10 billion
@@ -57,6 +58,7 @@ export function AddTransactionDialog({
   onAdd,
   editData,
 }: AddTransactionDialogProps) {
+  const { t, lang } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
@@ -105,13 +107,19 @@ export function AddTransactionDialog({
     // Validate amount: must be a positive number
     const amount = Number(formData.amount);
     if (!formData.amount || isNaN(amount) || amount <= 0) {
-      toast.error("Số tiền phải là một số dương lớn hơn 0.");
+      toast.error(
+        lang === "vi"
+          ? "Số tiền phải là một số dương lớn hơn 0."
+          : "Amount must be a positive number greater than 0.",
+      );
       return;
     }
 
     if (amount > MAX_AMOUNT) {
       toast.error(
-        `Số tiền không được vượt quá ${MAX_AMOUNT.toLocaleString("vi-VN")} ₫.`,
+        lang === "vi"
+          ? `Số tiền không được vượt quá ${MAX_AMOUNT.toLocaleString("vi-VN")} ₫.`
+          : `Amount cannot exceed ${MAX_AMOUNT.toLocaleString("en-US")} $.`,
       );
       return;
     }
@@ -142,7 +150,11 @@ export function AddTransactionDialog({
         } = await supabase.auth.getUser();
 
         if (!user) {
-          toast.error("Bạn cần đăng nhập để thực hiện thao tác này.");
+          toast.error(
+            lang === "vi"
+              ? "Bạn cần đăng nhập để thực hiện thao tác này."
+              : "You need to log in to perform this action.",
+          );
           return;
         }
 
@@ -178,7 +190,9 @@ export function AddTransactionDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Số tiền (₫)</Label>
+            <Label htmlFor="amount">
+              {lang === "vi" ? "Số tiền (₫)" : "Amount ($)"}
+            </Label>
             <Input
               id="amount"
               type="text"

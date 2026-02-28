@@ -17,8 +17,10 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function NotificationDropdown() {
+  const { t, lang } = useTranslation();
   const [notifications, setNotifications] = useState<Transaction[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -166,8 +168,17 @@ export function NotificationDropdown() {
                       </div>
                       <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-bold truncate">
-                          {t.type === "income" ? "Đã nhận: " : "Đã chi: "}
-                          {Number(t.amount).toLocaleString("vi-VN")} ₫
+                          {t.type === "income"
+                            ? lang === "vi"
+                              ? "+ "
+                              : "Received: "
+                            : lang === "vi"
+                              ? "- "
+                              : "Spent: "}
+                          {Number(t.amount).toLocaleString(
+                            lang === "vi" ? "vi-VN" : "en-US",
+                          )}{" "}
+                          {lang === "vi" ? "₫" : "$"}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {t.categories?.name} - {t.note || "Không có ghi chú"}
