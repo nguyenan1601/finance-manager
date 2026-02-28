@@ -1,4 +1,4 @@
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import { z } from "zod";
 
@@ -49,6 +49,13 @@ export async function POST(req: Request) {
     }
 
     const usdToVnd = Math.round(1 / vndToUsd);
+
+    // Get random API Key from list
+    const apiKeys = (process.env.GEMINI_API_KEYS || "")
+      .split(",")
+      .filter(Boolean);
+    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+    const google = createGoogleGenerativeAI({ apiKey: randomKey });
 
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),

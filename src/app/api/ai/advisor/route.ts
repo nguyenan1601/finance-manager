@@ -1,4 +1,4 @@
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamText, convertToModelMessages } from "ai";
 
 export async function POST(req: Request) {
@@ -11,8 +11,15 @@ export async function POST(req: Request) {
     // Convert UI messages to model messages for streamText
     const modelMessages = await convertToModelMessages(uiMessages);
 
+    // Get random API Key from list
+    const apiKeys = (process.env.GEMINI_API_KEYS || "")
+      .split(",")
+      .filter(Boolean);
+    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+    const google = createGoogleGenerativeAI({ apiKey: randomKey });
+
     const result = streamText({
-      model: google("gemini-flash-latest"),
+      model: google("gemini-2.5-flash"),
       system: `Bạn là trợ lý tài chính cá nhân mang tên Levi AI.
 
 VAI TRÒ CỦA BẠN:
