@@ -373,26 +373,109 @@ export default function TransactionsPage() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
+                {/* Mobile/Tablet List View */}
+                <div className="md:hidden divide-y divide-border">
+                  {filteredTransactions.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground bg-muted/5">
+                      {t("common.noTransactions")}
+                    </div>
+                  ) : (
+                    filteredTransactions.map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        className="p-4 flex flex-col gap-2 hover:bg-muted/10 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <p className="font-bold text-sm leading-tight line-clamp-2">
+                              {transaction.note ||
+                                transaction.name ||
+                                (lang === "vi"
+                                  ? "Không có ghi chú"
+                                  : "No note")}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                                {new Date(transaction.date).toLocaleDateString(
+                                  currencyFormat,
+                                )}
+                              </span>
+                              <Badge
+                                variant="secondary"
+                                className="h-4 px-1.5 text-[10px] bg-muted/50 font-normal border-none"
+                              >
+                                {transaction.categories?.name ||
+                                  (lang === "vi" ? "Khác" : "Other")}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <p
+                              className={cn(
+                                "font-bold text-sm",
+                                transaction.type === "income"
+                                  ? "text-emerald-600"
+                                  : "text-rose-600",
+                              )}
+                            >
+                              {transaction.type === "income" ? "+" : "-"}
+                              {Number(transaction.amount).toLocaleString(
+                                currencyFormat,
+                              )}{" "}
+                              {currencySymbol}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 mt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-muted-foreground hover:text-primary"
+                            onClick={() => handleEdit(transaction)}
+                          >
+                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                            <span className="text-xs">{t("common.edit")}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDelete(transaction.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                            <span className="text-xs">
+                              {t("common.delete")}
+                            </span>
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader className="bg-muted/30">
                       <TableRow>
                         <TableHead className="font-bold py-4 min-w-[100px]">
                           {t("common.date")}
                         </TableHead>
-                        <TableHead className="font-bold min-w-[150px]">
+                        <TableHead className="font-bold min-w-[200px]">
                           {t("common.description")}
                         </TableHead>
-                        <TableHead className="font-bold hidden md:table-cell">
+                        <TableHead className="font-bold">
                           {t("common.category")}
                         </TableHead>
                         <TableHead className="font-bold text-right">
                           {t("common.amount")}
                         </TableHead>
-                        <TableHead className="font-bold text-center hidden sm:table-cell">
+                        <TableHead className="font-bold text-center">
                           {t("common.status")}
                         </TableHead>
-                        <TableHead className="font-bold text-center w-[100px]">
+                        <TableHead className="font-bold text-center w-[120px]">
                           {lang === "vi" ? "Thao tác" : "Actions"}
                         </TableHead>
                       </TableRow>
@@ -408,47 +491,47 @@ export default function TransactionsPage() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredTransactions.map((t) => (
+                        filteredTransactions.map((transaction) => (
                           <TableRow
-                            key={t.id}
+                            key={transaction.id}
                             className="hover:bg-muted/20 transition-colors"
                           >
                             <TableCell className="text-muted-foreground font-medium">
-                              {new Date(t.date).toLocaleDateString(
+                              {new Date(transaction.date).toLocaleDateString(
                                 currencyFormat,
                               )}
                             </TableCell>
                             <TableCell className="font-bold">
-                              {t.note ||
-                                t.name ||
+                              {transaction.note ||
+                                transaction.name ||
                                 (lang === "vi"
                                   ? "Không có ghi chú"
                                   : "No note")}
                             </TableCell>
-                            <TableCell className="hidden md:table-cell">
+                            <TableCell>
                               <Badge
                                 variant="secondary"
                                 className="font-medium bg-muted/50 border-none"
                               >
-                                {t.categories?.name ||
+                                {transaction.categories?.name ||
                                   (lang === "vi" ? "Khác" : "Other")}
                               </Badge>
                             </TableCell>
                             <TableCell
                               className={cn(
-                                "text-right font-bold text-md",
-                                t.type === "income"
+                                "text-right font-bold text-base",
+                                transaction.type === "income"
                                   ? "text-emerald-600"
                                   : "text-rose-600",
                               )}
                             >
-                              {t.type === "income" ? "+" : "-"}
-                              {Number(t.amount).toLocaleString(
+                              {transaction.type === "income" ? "+" : "-"}
+                              {Number(transaction.amount).toLocaleString(
                                 currencyFormat,
                               )}{" "}
                               {currencySymbol}
                             </TableCell>
-                            <TableCell className="text-center hidden sm:table-cell">
+                            <TableCell className="text-center">
                               <div className="flex justify-center">
                                 <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                               </div>
@@ -459,7 +542,7 @@ export default function TransactionsPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                  onClick={() => handleEdit(t)}
+                                  onClick={() => handleEdit(transaction)}
                                   title={lang === "vi" ? "Chỉnh sửa" : "Edit"}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -468,7 +551,7 @@ export default function TransactionsPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                  onClick={() => handleDelete(t.id)}
+                                  onClick={() => handleDelete(transaction.id)}
                                   title={lang === "vi" ? "Xóa" : "Delete"}
                                 >
                                   <Trash2 className="h-4 w-4" />
