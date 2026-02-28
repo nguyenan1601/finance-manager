@@ -18,6 +18,16 @@ import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/hooks/use-translation";
 import { User } from "@supabase/supabase-js";
 import NextLink from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface SidebarContentProps {
   onClose?: () => void;
@@ -29,6 +39,7 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
   const [user, setUser] = useState<User | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const menuItems = [
     { name: t("common.dashboard"), href: "/", icon: LayoutDashboard },
@@ -145,16 +156,42 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => {
-            handleLogout();
-            onClose?.();
-          }}
-          className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-        >
-          <LogOut className="mr-3 h-5 w-5" />
-          {t("common.logout")}
-        </button>
+
+        <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
+              <LogOut className="mr-3 h-5 w-5" />
+              {t("common.logout")}
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{t("common.logoutConfirmTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("common.logoutConfirmDesc")}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="ghost"
+                onClick={() => setIsLogoutDialogOpen(false)}
+                className="rounded-lg"
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  handleLogout();
+                  onClose?.();
+                }}
+                className="rounded-lg shadow-lg shadow-destructive/20"
+              >
+                {t("common.logout")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
