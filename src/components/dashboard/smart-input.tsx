@@ -141,14 +141,16 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
           <Button
             onClick={handleParse}
             disabled={isLoading || !text}
-            className="rounded-xl h-11 px-4 shadow-lg shadow-primary/20"
+            className="rounded-xl h-11 px-3 sm:px-4 shadow-lg shadow-primary/20 shrink-0"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                {lang === "vi" ? "Xử lý AI" : "Process AI"}
+                <Sparkles className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  {lang === "vi" ? "Xử lý AI" : "Process AI"}
+                </span>
               </>
             )}
           </Button>
@@ -166,9 +168,9 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
 
       {suggestion && (
         <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant={
                     suggestion.type === "expense" ? "destructive" : "default"
@@ -186,7 +188,7 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
                 <Badge variant="outline" className="bg-background">
                   {suggestion.category}
                 </Badge>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium ml-1">
+                <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium bg-background/50 px-2 py-0.5 rounded-full border border-primary/5">
                   <CalendarIcon className="h-3 w-3" />
                   {new Date(suggestion.date).toLocaleDateString(
                     lang === "vi" ? "vi-VN" : "en-US",
@@ -198,35 +200,36 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold tracking-tight">
+                  <span className="text-3xl font-extrabold tracking-tight text-primary">
                     {suggestion.amount.toLocaleString(
                       lang === "vi" ? "vi-VN" : "en-US",
                     )}
                   </span>
-                  <span className="text-sm font-semibold text-muted-foreground">
+                  <span className="text-sm font-bold text-muted-foreground uppercase">
                     VND
                   </span>
                 </div>
+                <p className="text-sm text-muted-foreground italic mt-1 line-clamp-2">
+                  &quot;{suggestion.note}&quot;
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground italic">
-                &quot;{suggestion.note}&quot;
-              </p>
             </div>
-            <div className="flex flex-col gap-2">
+
+            <div className="flex flex-row sm:flex-col gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-primary/10">
               <Button
                 onClick={confirmAdd}
-                size="sm"
-                className="rounded-lg"
+                size="lg"
+                className="flex-1 sm:flex-none rounded-xl shadow-md"
                 disabled={isAdding}
               >
                 {isAdding ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    <Plus className="mr-1 h-3.5 w-3.5" />
-                    {lang === "vi" ? "Thêm ngay" : "Add now"}
+                    <Plus className="mr-2 h-4 w-4" />
+                    {lang === "vi" ? "Thêm" : "Add"}
                   </>
                 )}
               </Button>
@@ -234,7 +237,7 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
                 onClick={() => setSuggestion(null)}
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-destructive"
+                className="flex-1 sm:flex-none text-muted-foreground hover:text-destructive h-auto py-2"
               >
                 {t("common.cancel")}
               </Button>
