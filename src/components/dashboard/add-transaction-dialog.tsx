@@ -21,8 +21,10 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { db, Category } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const NOTE_MAX_LENGTH = 100;
+const MAX_AMOUNT = 10000000000; // 10 billion
 
 export interface TransactionFormData {
   id?: string;
@@ -103,13 +105,20 @@ export function AddTransactionDialog({
     // Validate amount: must be a positive number
     const amount = Number(formData.amount);
     if (!formData.amount || isNaN(amount) || amount <= 0) {
-      alert("Số tiền phải là một số dương lớn hơn 0.");
+      toast.error("Số tiền phải là một số dương lớn hơn 0.");
+      return;
+    }
+
+    if (amount > MAX_AMOUNT) {
+      toast.error(
+        `Số tiền không được vượt quá ${MAX_AMOUNT.toLocaleString("vi-VN")} ₫.`,
+      );
       return;
     }
 
     // Validate note length
     if (formData.note.length > NOTE_MAX_LENGTH) {
-      alert(`Ghi chú không được vượt quá ${NOTE_MAX_LENGTH} ký tự.`);
+      toast.error(`Ghi chú không được vượt quá ${NOTE_MAX_LENGTH} ký tự.`);
       return;
     }
 
@@ -125,6 +134,7 @@ export function AddTransactionDialog({
           note: formData.note,
           date: formData.date,
         });
+        toast.success("Cập nhật giao dịch thành công!");
       } else {
         // Add mode
         const {
@@ -132,7 +142,7 @@ export function AddTransactionDialog({
         } = await supabase.auth.getUser();
 
         if (!user) {
-          alert("Bạn cần đăng nhập để thực hiện thao tác này.");
+          toast.error("Bạn cần đăng nhập để thực hiện thao tác này.");
           return;
         }
 
@@ -144,6 +154,7 @@ export function AddTransactionDialog({
           note: formData.note,
           date: formData.date,
         });
+        toast.success("Đã lưu giao dịch mới!");
       }
 
       if (onAdd) onAdd();
@@ -151,7 +162,7 @@ export function AddTransactionDialog({
       setFormData(defaultFormData);
     } catch (error: unknown) {
       console.error("Error saving transaction:", error);
-      alert("Đã có lỗi xảy ra khi lưu giao dịch.");
+      toast.error("Đã có lỗi xảy ra khi lưu giao dịch.");
     } finally {
       setIsLoading(false);
     }

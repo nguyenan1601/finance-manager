@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const today = currentDate || new Date().toISOString().split("T")[0];
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash-001"),
+      model: google("gemini-2.5-flash"),
       messages: [
         {
           role: "user",
