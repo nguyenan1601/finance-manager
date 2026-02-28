@@ -13,13 +13,32 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, Search, Download, Loader2 } from "lucide-react";
-import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog";
-// import { BillScanner } from "@/components/dashboard/bill-scanner";
+import {
+  Plus,
+  Filter,
+  Search,
+  Download,
+  Loader2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+import {
+  AddTransactionDialog,
+  TransactionFormData,
+} from "@/components/dashboard/add-transaction-dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/db";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Transaction {
   id: string;
@@ -28,13 +47,13 @@ interface Transaction {
   name?: string;
   type: "income" | "expense";
   amount: number;
+  category_id?: string;
   categories?: {
     name: string;
   };
 }
 
 import { useTranslation } from "@/hooks/use-translation";
-// import { BillScanner } from "@/components/dashboard/bill-scanner";
 
 export default function TransactionsPage() {
   const { t, lang } = useTranslation();
@@ -42,6 +61,12 @@ export default function TransactionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<TransactionFormData | null>(null);
+
+  // States for filtering
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
 
   const fetchTransactions = async () => {
     setIsLoading(true);
@@ -59,11 +84,66 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, []);
 
-  const filteredTransactions = transactions.filter(
-    (t) =>
+  const filteredTransactions = transactions.filter((t) => {
+    const matchesSearch =
       t.note?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.categories?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+      t.categories?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesType = filterType === "all" || t.type === filterType;
+
+    const matchesCategory =
+      filterCategory === "all" || t.categories?.name === filterCategory;
+
+    return matchesSearch && matchesType && matchesCategory;
+  });
+
+  const clearFilters = () => {
+    setFilterType("all");
+    setFilterCategory("all");
+    setSearchTerm("");
+  };
+
+  const hasActiveFilters =
+    filterType !== "all" || filterCategory !== "all" || searchTerm !== "";
+
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction({
+      id: transaction.id,
+      amount: String(transaction.amount),
+      type: transaction.type,
+      category_id: transaction.category_id || "",
+      note: transaction.note || "",
+      date: transaction.date,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    const isVi = lang === "vi";
+    const confirmMsg = isVi
+      ? "Bạn có chắc chắn muốn xóa giao dịch này?"
+      : "Are you sure you want to delete this transaction?";
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await db.deleteTransaction(id);
+      toast.success(
+        isVi ? "Đã xóa giao dịch thành công!" : "Transaction deleted!",
+      );
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast.error(isVi ? "Lỗi khi xóa giao dịch." : "Error deleting.");
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingTransaction(null);
+    }
+  };
 
   const handleExport = () => {
     const isVi = lang === "vi";
@@ -77,14 +157,12 @@ export default function TransactionsPage() {
         return;
       }
 
-      // Chuẩn bị header cho CSV
       const headers = isVi
         ? ["Ngày", "Mô tả", "Danh mục", "Loại", "Số tiền (VND)"]
         : ["Date", "Description", "Category", "Type", "Amount"];
 
       const currencyFormat = isVi ? "vi-VN" : "en-US";
 
-      // Chuyển đổi dữ liệu sang mảng các dòng
       const rows = filteredTransactions.map((t) => [
         new Date(t.date).toLocaleDateString(currencyFormat),
         t.note || t.name || (isVi ? "Không có ghi chú" : "No note"),
@@ -99,19 +177,16 @@ export default function TransactionsPage() {
         t.amount,
       ]);
 
-      // Tạo nội dung CSV
       const csvContent = [
         headers.join(","),
         ...rows.map((row) => row.join(",")),
       ].join("\n");
 
-      // Thêm BOM (Byte Order Mark) để Excel nhận diện UTF-8 (hiển thị đúng tiếng Việt)
       const BOM = "\uFEFF";
       const blob = new Blob([BOM + csvContent], {
         type: "text/csv;charset=utf-8;",
       });
 
-      // Tạo link tải
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
@@ -160,11 +235,13 @@ export default function TransactionsPage() {
               <Download className="mr-2 h-4 w-4" />
               {t("common.export")}
             </Button>
-            {/* <BillScanner onSuccess={() => fetchTransactions()} /> */}
             <Button
               size="sm"
               className="rounded-lg shadow-lg shadow-primary/20"
-              onClick={() => setIsDialogOpen(true)}
+              onClick={() => {
+                setEditingTransaction(null);
+                setIsDialogOpen(true);
+              }}
             >
               <Plus className="mr-2 h-4 w-4" />
               {t("common.new")}
@@ -174,8 +251,9 @@ export default function TransactionsPage() {
 
         <AddTransactionDialog
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={handleDialogClose}
           onAdd={() => fetchTransactions()}
+          editData={editingTransaction}
         />
 
         <Card className="border-none shadow-sm">
@@ -191,14 +269,97 @@ export default function TransactionsPage() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                >
-                  <Filter className="mr-2 h-3.5 w-3.5" />
-                  {t("common.filter")}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant={
+                        filterType !== "all" || filterCategory !== "all"
+                          ? "default"
+                          : "ghost"
+                      }
+                      size="sm"
+                      className="text-xs font-semibold uppercase tracking-wider"
+                    >
+                      <Filter className="mr-2 h-3.5 w-3.5" />
+                      {t("common.filter")}
+                      {(filterType !== "all" || filterCategory !== "all") && (
+                        <Badge
+                          variant="secondary"
+                          className="ml-2 h-4 px-1 text-[10px]"
+                        >
+                          !
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      {lang === "vi" ? "Theo loại" : "By type"}
+                    </DropdownMenuLabel>
+                    <DropdownMenuRadioGroup
+                      value={filterType}
+                      onValueChange={setFilterType}
+                    >
+                      <DropdownMenuRadioItem value="all">
+                        {lang === "vi" ? "Tất cả" : "All"}
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="income">
+                        {t("common.income")}
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="expense">
+                        {t("common.expense")}
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuLabel>
+                      {t("common.category")}
+                    </DropdownMenuLabel>
+                    <div className="max-h-60 overflow-y-auto">
+                      <DropdownMenuRadioGroup
+                        value={filterCategory}
+                        onValueChange={setFilterCategory}
+                      >
+                        <DropdownMenuRadioItem value="all">
+                          {lang === "vi" ? "Tất cả danh mục" : "All categories"}
+                        </DropdownMenuRadioItem>
+                        {Array.from(
+                          new Set(
+                            transactions
+                              .map((t) => t.categories?.name)
+                              .filter(Boolean),
+                          ),
+                        ).map((catName) => (
+                          <DropdownMenuRadioItem
+                            key={catName}
+                            value={catName as string}
+                          >
+                            {catName}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </div>
+
+                    {hasActiveFilters && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <div className="p-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={clearFilters}
+                          >
+                            {lang === "vi"
+                              ? "Xóa tất cả bộ lọc"
+                              : "Clear all filters"}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </CardHeader>
@@ -219,17 +380,20 @@ export default function TransactionsPage() {
                         <TableHead className="font-bold py-4 min-w-[100px]">
                           {t("common.date")}
                         </TableHead>
-                        <TableHead className="font-bold min-w-[200px]">
+                        <TableHead className="font-bold min-w-[150px]">
                           {t("common.description")}
                         </TableHead>
-                        <TableHead className="font-bold">
+                        <TableHead className="font-bold hidden md:table-cell">
                           {t("common.category")}
                         </TableHead>
                         <TableHead className="font-bold text-right">
                           {t("common.amount")}
                         </TableHead>
-                        <TableHead className="font-bold text-center">
+                        <TableHead className="font-bold text-center hidden sm:table-cell">
                           {t("common.status")}
+                        </TableHead>
+                        <TableHead className="font-bold text-center w-[100px]">
+                          {lang === "vi" ? "Thao tác" : "Actions"}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -237,7 +401,7 @@ export default function TransactionsPage() {
                       {filteredTransactions.length === 0 ? (
                         <TableRow>
                           <TableCell
-                            colSpan={5}
+                            colSpan={6}
                             className="text-center py-10 text-muted-foreground"
                           >
                             {t("common.noTransactions")}
@@ -261,7 +425,7 @@ export default function TransactionsPage() {
                                   ? "Không có ghi chú"
                                   : "No note")}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                               <Badge
                                 variant="secondary"
                                 className="font-medium bg-muted/50 border-none"
@@ -284,9 +448,31 @@ export default function TransactionsPage() {
                               )}{" "}
                               {currencySymbol}
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center hidden sm:table-cell">
                               <div className="flex justify-center">
                                 <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                  onClick={() => handleEdit(t)}
+                                  title={lang === "vi" ? "Chỉnh sửa" : "Edit"}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  onClick={() => handleDelete(t.id)}
+                                  title={lang === "vi" ? "Xóa" : "Delete"}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>

@@ -29,12 +29,12 @@ export default function AIAssistantPage() {
     <DashboardLayout>
       <div className="grid gap-8 lg:grid-cols-12 max-w-7xl mx-auto">
         {/* Chatbot Column */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-12">
           <AdvisorChat />
         </div>
 
         {/* Info Column */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* <div className="lg:col-span-5 space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">
               {t("home.aiAssistant")}
@@ -111,7 +111,7 @@ export default function AIAssistantPage() {
               </ul>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
     </DashboardLayout>
   );

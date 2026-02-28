@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
+import { MobileNav } from "./mobile-nav";
+
 export function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
@@ -35,8 +37,12 @@ export function Header() {
   const initials = fullName ? fullName.substring(0, 2).toUpperCase() : "";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md">
-      <div className="hidden flex-1 sm:block"></div>
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/80 px-4 sm:px-6 backdrop-blur-md">
+      <div className="flex items-center gap-4">
+        <MobileNav />
+      </div>
+
+      <div className="hidden flex-1 lg:block"></div>
 
       <div className="flex items-center gap-4">
         <NotificationDropdown />
@@ -46,7 +52,10 @@ export function Header() {
           className="h-10 w-10 rounded-full border bg-muted/20 overflow-hidden p-0 cursor-pointer"
         >
           {avatarUrl ? (
-            <div className="relative h-full w-full" onClick={() => window.location.href = "/settings"}>
+            <div
+              className="relative h-full w-full"
+              onClick={() => (window.location.href = "/settings")}
+            >
               <Image
                 src={avatarUrl}
                 alt="Avatar"

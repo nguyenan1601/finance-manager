@@ -54,7 +54,6 @@ export default function Home() {
     monthlyIncome: 0,
     monthlyExpense: 0,
     transactionCount: 0,
-    financialScore: 0,
   });
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>(
     [],
@@ -103,11 +102,6 @@ export default function Home() {
           transactions?.filter(
             (t: Transaction) => new Date(t.date) >= firstDayOfMonth,
           ).length || 0,
-        financialScore: calculateFinancialScore(
-          monthlyIncome,
-          monthlyExpense,
-          transactions?.length || 0,
-        ),
       });
 
       // Calculate Chart Data (Spending Trend - last 6 months)
@@ -143,35 +137,6 @@ export default function Home() {
     }
   }, [lang]);
 
-  const calculateFinancialScore = (
-    income: number,
-    expense: number,
-    totalTx: number,
-  ) => {
-    let score = 500; // Điểm nền
-
-    // 1. Tỷ lệ tiết kiệm (Max 300đ)
-    if (income > 0) {
-      const savingsRate = (income - expense) / income;
-      score += Math.max(0, Math.min(savingsRate * 300, 300));
-    } else if (expense > 0) {
-      score -= 100; // Có chi mà không có thu
-    }
-
-    // 2. Tính kỷ luật (Max 200đ)
-    // Giả sử có ít nhất 10 giao dịch/tháng là tốt
-    score += Math.min(totalTx * 10, 200);
-
-    return Math.floor(score);
-  };
-
-  const getScoreRating = (score: number) => {
-    if (score >= 800) return lang === "vi" ? "Tuyệt vời" : "Excellent";
-    if (score >= 650) return lang === "vi" ? "Khá tốt" : "Great";
-    if (score >= 450) return lang === "vi" ? "Trung bình" : "Average";
-    return lang === "vi" ? "Cần cải thiện" : "Needs Improvement";
-  };
-
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
@@ -190,7 +155,7 @@ export default function Home() {
       </div>
 
       {/* Thống kê Tổng quan */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title={t("home.totalBalance")}
           value={`${stats.totalBalance.toLocaleString(currencyFormat)} ${currencySymbol}`}
@@ -216,17 +181,9 @@ export default function Home() {
               : `${stats.transactionCount} transactions`
           }
         />
-
-        <StatCard
-          title={t("home.financialScore")}
-          value={stats.financialScore.toString()}
-          icon={TrendingUp}
-          description={`${lang === "vi" ? "Mức" : "Level"}: ${getScoreRating(stats.financialScore)}`}
-          className="bg-indigo-50/50 dark:bg-indigo-950/10"
-        />
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+      <div className="mt-8 grid gap-6 grid-cols-1 lg:grid-cols-7">
         {/* Biểu đồ xu hướng */}
         <Card className="lg:col-span-4 border-none shadow-sm">
           <CardHeader>

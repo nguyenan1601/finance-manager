@@ -78,6 +78,32 @@ export const db = {
     return data[0];
   },
 
+  async updateTransaction(
+    id: string,
+    updates: Partial<Omit<Transaction, "id" | "categories">>,
+  ) {
+    const { data, error } = await supabase
+      .from("transactions")
+      .update(updates)
+      .eq("id", id).select(`
+        *,
+        categories (
+          name,
+          icon,
+          color
+        )
+      `);
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  async deleteTransaction(id: string) {
+    const { error } = await supabase.from("transactions").delete().eq("id", id);
+
+    if (error) throw error;
+  },
+
   // Categories
   async getCategories(type?: "income" | "expense"): Promise<Category[]> {
     const {

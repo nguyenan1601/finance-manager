@@ -15,24 +15,61 @@ export default function AuthCallbackPage() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        // Auto-create/update profile for Google users
-        const { user } = session;
-        await supabase.from("profiles").upsert(
-          {
-            id: user.id,
-            full_name:
-              user.user_metadata.full_name ||
-              user.email?.split("@")[0] ||
-              "Người dùng",
-            avatar_url: user.user_metadata.avatar_url || null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" },
-        );
+      try {
+        if (event === "SIGNED_IN" && session) {
+          // Auto-create/update profile for Google users
+          const { user } = session;
 
-        // Redirect to home page
-        router.replace("/");
+          // Check if profile already exists
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id, avatar_url")
+            .eq("id", user.id)
+            .single();
+
+          const googleAvatar =
+            user.user_metadata.avatar_url || user.user_metadata.picture || null;
+
+          if (!existingProfile) {
+            // New user: create profile with Google avatar
+            const { error: insertError } = await supabase
+              .from("profiles")
+              .insert({
+                id: user.id,
+                full_name:
+                  user.user_metadata.full_name ||
+                  user.email?.split("@")[0] ||
+                  "Người dùng",
+                avatar_url: googleAvatar,
+                updated_at: new Date().toISOString(),
+              });
+
+            if (insertError) throw insertError;
+          } else {
+            // Existing user: only update name & timestamp, NEVER overwrite avatar
+            const { error: updateError } = await supabase
+              .from("profiles")
+              .update({
+                full_name: existingProfile.avatar_url
+                  ? undefined // Don't update name either if user has customized profile
+                  : user.user_metadata.full_name ||
+                    user.email?.split("@")[0] ||
+                    "Người dùng",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", user.id);
+
+            if (updateError) throw updateError;
+          }
+
+          // Redirect to home page
+          router.replace("/");
+        }
+      } catch (err) {
+        console.error("Auth callback error:", err);
+        setError(
+          err instanceof Error ? err.message : "Đã xảy ra lỗi khi xác thực",
+        );
       }
     });
 

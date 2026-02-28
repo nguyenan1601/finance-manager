@@ -22,27 +22,55 @@ import { Loader2 } from "lucide-react";
 import { db, Category } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 
+const NOTE_MAX_LENGTH = 100;
+
+export interface TransactionFormData {
+  id?: string;
+  amount: string;
+  type: "income" | "expense";
+  category_id: string;
+  note: string;
+  date: string;
+}
+
 interface AddTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd?: () => void;
+  /** If provided, the dialog will be in edit mode */
+  editData?: TransactionFormData | null;
 }
+
+const defaultFormData: TransactionFormData = {
+  amount: "",
+  type: "expense",
+  category_id: "",
+  note: "",
+  date: new Date().toISOString().split("T")[0],
+};
 
 export function AddTransactionDialog({
   open,
   onOpenChange,
   onAdd,
+  editData,
 }: AddTransactionDialogProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
-  const [formData, setFormData] = useState({
-    amount: "",
-    type: "expense" as "income" | "expense",
-    category_id: "",
-    note: "",
-    date: new Date().toISOString().split("T")[0],
-  });
+  const [formData, setFormData] =
+    useState<TransactionFormData>(defaultFormData);
+
+  const isEditMode = !!editData?.id;
+
+  // Populate form when editData changes
+  useEffect(() => {
+    if (editData && open) {
+      setFormData(editData);
+    } else if (!open) {
+      setFormData(defaultFormData);
+    }
+  }, [editData, open]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -52,7 +80,6 @@ export function AddTransactionDialog({
         const data = await db.getCategories(formData.type);
         setCategories(data);
         if (data.length > 0) {
-          // Only update if current category_id is not in new categories
           const exists = data.find(
             (c: Category) => c.id === formData.category_id,
           );
@@ -67,42 +94,63 @@ export function AddTransactionDialog({
       }
     }
     fetchCategories();
-  }, [open, formData.type, formData.category_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, formData.type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate amount: must be a positive number
+    const amount = Number(formData.amount);
+    if (!formData.amount || isNaN(amount) || amount <= 0) {
+      alert("Số tiền phải là một số dương lớn hơn 0.");
+      return;
+    }
+
+    // Validate note length
+    if (formData.note.length > NOTE_MAX_LENGTH) {
+      alert(`Ghi chú không được vượt quá ${NOTE_MAX_LENGTH} ký tự.`);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      if (isEditMode && editData?.id) {
+        // Edit mode
+        await db.updateTransaction(editData.id, {
+          amount: Number(formData.amount),
+          type: formData.type,
+          category_id: formData.category_id,
+          note: formData.note,
+          date: formData.date,
+        });
+      } else {
+        // Add mode
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        alert("Bạn cần đăng nhập để thực hiện thao tác này.");
-        return;
+        if (!user) {
+          alert("Bạn cần đăng nhập để thực hiện thao tác này.");
+          return;
+        }
+
+        await db.addTransaction({
+          user_id: user.id,
+          amount: Number(formData.amount),
+          type: formData.type,
+          category_id: formData.category_id,
+          note: formData.note,
+          date: formData.date,
+        });
       }
-
-      await db.addTransaction({
-        user_id: user.id,
-        amount: Number(formData.amount),
-        type: formData.type,
-        category_id: formData.category_id,
-        note: formData.note,
-        date: formData.date,
-      });
 
       if (onAdd) onAdd();
       onOpenChange(false);
-      setFormData({
-        amount: "",
-        type: "expense",
-        category_id: "",
-        note: "",
-        date: new Date().toISOString().split("T")[0],
-      });
+      setFormData(defaultFormData);
     } catch (error: unknown) {
-      console.error("Error adding transaction:", error);
+      console.error("Error saving transaction:", error);
       alert("Đã có lỗi xảy ra khi lưu giao dịch.");
     } finally {
       setIsLoading(false);
@@ -113,19 +161,24 @@ export function AddTransactionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Thêm giao dịch mới</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Chỉnh sửa giao dịch" : "Thêm giao dịch mới"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="amount">Số tiền (₫)</Label>
             <Input
               id="amount"
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="0"
               value={formData.amount}
-              onChange={(e) =>
-                setFormData({ ...formData, amount: e.target.value })
-              }
+              onChange={(e) => {
+                // Only allow digits (no +, -, e, .)
+                const val = e.target.value.replace(/[^0-9]/g, "");
+                setFormData({ ...formData, amount: val });
+              }}
               required
               className="h-11 rounded-lg"
             />
@@ -194,11 +247,19 @@ export function AddTransactionDialog({
               id="note"
               placeholder="Nhập ghi chú..."
               value={formData.note}
-              onChange={(e) =>
-                setFormData({ ...formData, note: e.target.value })
-              }
+              onChange={(e) => {
+                if (e.target.value.length <= NOTE_MAX_LENGTH) {
+                  setFormData({ ...formData, note: e.target.value });
+                }
+              }}
+              maxLength={NOTE_MAX_LENGTH}
               className="h-11 rounded-lg"
             />
+            <p
+              className={`text-xs text-right ${formData.note.length >= NOTE_MAX_LENGTH ? "text-destructive" : "text-muted-foreground"}`}
+            >
+              {formData.note.length}/{NOTE_MAX_LENGTH}
+            </p>
           </div>
 
           <DialogFooter className="pt-4">
@@ -209,6 +270,8 @@ export function AddTransactionDialog({
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
+              ) : isEditMode ? (
+                "Cập nhật giao dịch"
               ) : (
                 "Lưu giao dịch"
               )}

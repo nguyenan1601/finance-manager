@@ -69,6 +69,16 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
 
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      setError(
+        "Email không đúng định dạng. Vui lòng nhập đúng (VD: ten@gmail.com)",
+      );
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
@@ -163,9 +173,9 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Mật khẩu (ít nhất 8 ký tự)"
+                  placeholder="Mật khẩu (ít nhất 6 ký tự)"
                   required
-                  minLength={8}
+                  minLength={6}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
