@@ -34,7 +34,7 @@ interface Transaction {
 }
 
 import { useTranslation } from "@/hooks/use-translation";
-import { BillScanner } from "@/components/dashboard/bill-scanner";
+// import { BillScanner } from "@/components/dashboard/bill-scanner";
 
 export default function TransactionsPage() {
   const { t, lang } = useTranslation();
