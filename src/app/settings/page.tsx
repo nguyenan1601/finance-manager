@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   User,
@@ -66,6 +67,7 @@ export default function SettingsPage() {
 
   // Password change states
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -197,13 +199,6 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    const confirmMsg =
-      lang === "vi"
-        ? "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?"
-        : "Are you sure you want to log out?";
-    const ok = window.confirm(confirmMsg);
-    if (!ok) return;
-
     try {
       await supabase.auth.signOut();
       router.push("/login");
@@ -241,14 +236,45 @@ export default function SettingsPage() {
               {t("settings.subtitle")}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
-            onClick={handleLogout}
+
+          <Dialog
+            open={isLogoutDialogOpen}
+            onOpenChange={setIsLogoutDialogOpen}
           >
-            <LogOut className="mr-2 h-4 w-4" />
-            {t("common.logout")}
-          </Button>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {t("common.logout")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>{t("common.logoutConfirmTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("common.logoutConfirmDesc")}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsLogoutDialogOpen(false)}
+                  className="rounded-lg"
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleLogout}
+                  className="rounded-lg shadow-lg shadow-destructive/20"
+                >
+                  {t("common.logout")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid gap-6">
