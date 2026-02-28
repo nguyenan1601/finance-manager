@@ -1,6 +1,5 @@
 import { LucideIcon, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/hooks/use-translation";
 
 interface TransactionItemProps {
   name: string;
@@ -21,7 +20,6 @@ export function TransactionItem({
   icon: Icon,
   className,
 }: TransactionItemProps) {
-  const { lang } = useTranslation();
   const isIncome = type === "income";
 
   return (

@@ -20,7 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/hooks/use-translation";
 
 export function NotificationDropdown() {
-  const { t, lang } = useTranslation();
+  const { lang } = useTranslation();
   const [notifications, setNotifications] = useState<Transaction[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 

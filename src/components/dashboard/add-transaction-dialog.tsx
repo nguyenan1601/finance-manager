@@ -58,7 +58,7 @@ export function AddTransactionDialog({
   onAdd,
   editData,
 }: AddTransactionDialogProps) {
-  const { t, lang } = useTranslation();
+  const { lang } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
