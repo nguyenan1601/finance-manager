@@ -182,10 +182,10 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               {t("common.reports")}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {lang === "vi"
                 ? "Phân tích chi tiết dòng tiền và thói quen tiêu dùng."
                 : "Detailed analysis of cash flow and spending habits."}
@@ -230,18 +230,24 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
         ) : (
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="bg-muted/50 p-1 rounded-xl w-fit">
-              <TabsTrigger value="overview" className="rounded-lg px-6">
+          <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+            <TabsList className="bg-muted/50 p-1 rounded-xl w-full sm:w-fit">
+              <TabsTrigger
+                value="overview"
+                className="rounded-lg px-4 sm:px-6 flex-1 sm:flex-none text-xs sm:text-sm"
+              >
                 {lang === "vi" ? "Tổng quan" : "Overview"}
               </TabsTrigger>
-              <TabsTrigger value="categories" className="rounded-lg px-6">
+              <TabsTrigger
+                value="categories"
+                className="rounded-lg px-4 sm:px-6 flex-1 sm:flex-none text-xs sm:text-sm"
+              >
                 {lang === "vi" ? "Theo danh mục" : "By category"}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-3">
                 <Card className="border-none shadow-sm">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground uppercase">
@@ -249,7 +255,7 @@ export default function ReportsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
+                    <div className="text-xl sm:text-2xl font-bold">
                       {summary.avgIncome.toLocaleString(currencyFormat)}{" "}
                       {currencySymbol}
                     </div>
@@ -269,7 +275,7 @@ export default function ReportsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
+                    <div className="text-xl sm:text-2xl font-bold">
                       {summary.avgExpense.toLocaleString(currencyFormat)}{" "}
                       {currencySymbol}
                     </div>
@@ -287,7 +293,7 @@ export default function ReportsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
+                    <div className="text-xl sm:text-2xl font-bold">
                       {summary.totalSavings.toLocaleString(currencyFormat)}{" "}
                       {currencySymbol}
                     </div>
@@ -309,7 +315,7 @@ export default function ReportsPage() {
                       : "Income & Expense Comparison"}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-[400px] pt-6">
+                <CardContent className="h-[280px] sm:h-[400px] pt-4 sm:pt-6 px-1 sm:px-6">
                   <ReResponsiveContainer width="100%" height="100%">
                     <ReBarChart data={monthlyData}>
                       <ReCartesianGrid
@@ -373,8 +379,8 @@ export default function ReportsPage() {
             </TabsContent>
 
             <TabsContent value="categories" className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-12">
-                <Card className="border-none shadow-sm md:col-span-7">
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-12">
+                <Card className="border-none shadow-sm sm:col-span-7">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <PieChartIcon className="h-5 w-5 text-primary" />
@@ -383,7 +389,7 @@ export default function ReportsPage() {
                         : "Spending breakdown this month"}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="h-[350px] flex items-center justify-center relative">
+                  <CardContent className="h-[280px] sm:h-[350px] flex items-center justify-center relative">
                     {categoryData.length > 0 ? (
                       <>
                         <ReResponsiveContainer width="100%" height="100%">
@@ -439,7 +445,7 @@ export default function ReportsPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-sm md:col-span-5">
+                <Card className="border-none shadow-sm sm:col-span-5">
                   <CardHeader>
                     <CardTitle className="text-sm font-bold uppercase text-muted-foreground">
                       {lang === "vi" ? "Chi tiết danh mục" : "Category details"}

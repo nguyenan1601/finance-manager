@@ -32,21 +32,25 @@ export function StatCard({
         className,
       )}
     >
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+        <CardTitle className="text-xs sm:text-sm font-medium">
+          {title}
+        </CardTitle>
         <div
           className={cn(
-            "h-8 w-8 rounded-full flex items-center justify-center",
+            "h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center",
             variant === "bright"
               ? "bg-primary/20 text-primary"
               : "bg-muted text-muted-foreground",
           )}
         >
-          <Icon className="h-4 w-4" />
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold tracking-tight">{value}</div>
+      <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="text-xl sm:text-2xl font-bold tracking-tight">
+          {value}
+        </div>
         {(description || trend) && (
           <div className="flex items-center mt-2">
             {trend && (

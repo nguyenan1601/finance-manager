@@ -25,8 +25,156 @@ export interface Transaction {
   };
 }
 
+export interface Budget {
+  id: string;
+  user_id: string;
+  category_id: string;
+  amount: number;
+  period: string;
+  categories: {
+    name: string;
+    icon?: string;
+    color?: string;
+  };
+}
+
+export interface RecurringTransaction {
+  id: string;
+  user_id: string;
+  category_id: string;
+  amount: number;
+  type: "income" | "expense";
+  note: string;
+  frequency: "daily" | "weekly" | "monthly" | "yearly";
+  next_date: string;
+  last_processed?: string;
+  is_active: boolean;
+  created_at?: string;
+  categories?: {
+    name: string;
+    icon?: string;
+    color?: string;
+  };
+}
+
 export const db = {
-  // Transactions
+  // Recurring Transactions
+  async getRecurringTransactions(): Promise<RecurringTransaction[]> {
+    const { data, error } = await supabase
+      .from("recurring_transactions")
+      .select(
+        `
+        *,
+        categories (
+          name,
+          icon,
+          color
+        )
+      `,
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addRecurringTransaction(
+    item: Omit<RecurringTransaction, "id" | "categories">,
+  ) {
+    const { data, error } = await supabase
+      .from("recurring_transactions")
+      .insert([item])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  async updateRecurringTransaction(
+    id: string,
+    updates: Partial<Omit<RecurringTransaction, "id" | "categories">>,
+  ) {
+    const { data, error } = await supabase
+      .from("recurring_transactions")
+      .update(updates)
+      .eq("id", id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  async deleteRecurringTransaction(id: string) {
+    const { error } = await supabase
+      .from("recurring_transactions")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  },
+
+  async processRecurringTransactions() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    // Get active recurring transactions that are due
+    const { data: recurring, error } = await supabase
+      .from("recurring_transactions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .lte("next_date", today);
+
+    if (error) {
+      console.error("Error fetching due recurring transactions:", error);
+      return;
+    }
+
+    if (!recurring || recurring.length === 0) return;
+
+    for (const item of recurring) {
+      try {
+        // 1. Create the transaction
+        await this.addTransaction({
+          user_id: user.id,
+          amount: item.amount,
+          type: item.type,
+          category_id: item.category_id,
+          note: `[Cố định] ${item.note}`,
+          date: item.next_date, // Process for the date it was due
+        });
+
+        // 2. Calculate next date
+        const nextDateObj = new Date(item.next_date);
+        if (item.frequency === "daily") {
+          nextDateObj.setDate(nextDateObj.getDate() + 1);
+        } else if (item.frequency === "weekly") {
+          nextDateObj.setDate(nextDateObj.getDate() + 7);
+        } else if (item.frequency === "monthly") {
+          nextDateObj.setMonth(nextDateObj.getMonth() + 1);
+        } else if (item.frequency === "yearly") {
+          nextDateObj.setFullYear(nextDateObj.getFullYear() + 1);
+        }
+
+        const nextDateStr = nextDateObj.toISOString().split("T")[0];
+
+        // 3. Update the recurring transaction record
+        await supabase
+          .from("recurring_transactions")
+          .update({
+            next_date: nextDateStr,
+            last_processed: today,
+          })
+          .eq("id", item.id);
+      } catch (e) {
+        console.error(`Error processing recurring transaction ${item.id}:`, e);
+      }
+    }
+  },
+
   async getTransactions() {
     const { data, error } = await supabase
       .from("transactions")

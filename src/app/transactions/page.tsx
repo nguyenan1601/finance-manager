@@ -39,6 +39,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BillScanner } from "@/components/dashboard/bill-scanner";
 
 interface Transaction {
   id: string;
@@ -216,16 +217,32 @@ export default function TransactionsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {t("common.transactions")}
-            </h1>
-            <p className="text-muted-foreground">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                {t("common.transactions")}
+              </h1>
+              <div className="flex items-center gap-2 sm:hidden">
+                <BillScanner onSuccess={fetchTransactions} />
+                <Button
+                  size="sm"
+                  className="rounded-lg shadow-lg shadow-primary/20 h-9"
+                  onClick={() => {
+                    setEditingTransaction(null);
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-sm sm:text-base text-muted-foreground">
               {lang === "vi"
                 ? "Theo dõi và quản lý toàn bộ các khoản thu chi của bạn."
                 : "Track and manage all your income and expenses."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
+            <BillScanner onSuccess={fetchTransactions} />
             <Button
               variant="outline"
               size="sm"
@@ -428,11 +445,11 @@ export default function TransactionsPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 mt-1">
+                        <div className="flex items-center justify-end gap-1 mt-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-muted-foreground hover:text-primary"
+                            className="h-9 px-3 text-muted-foreground hover:text-primary active:scale-95 transition-all"
                             onClick={() => handleEdit(transaction)}
                           >
                             <Pencil className="h-3.5 w-3.5 mr-1.5" />
@@ -441,7 +458,7 @@ export default function TransactionsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                            className="h-9 px-3 text-muted-foreground hover:text-destructive active:scale-95 transition-all"
                             onClick={() => handleDelete(transaction.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5 mr-1.5" />

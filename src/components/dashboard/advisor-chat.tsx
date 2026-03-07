@@ -245,14 +245,14 @@ export function AdvisorChat() {
   };
 
   return (
-    <Card className="flex flex-col h-[650px] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm dark:bg-gray-900/50">
-      <CardHeader className="shrink-0 bg-primary px-6 py-4 flex flex-row items-center justify-between">
+    <Card className="flex flex-col h-[calc(100dvh-8rem)] sm:h-[650px] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm dark:bg-gray-900/50">
+      <CardHeader className="shrink-0 bg-primary px-4 sm:px-6 py-3 sm:py-4 flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/30">
-            <Bot className="h-6 w-6 text-white" />
+          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/30">
+            <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           <div>
-            <CardTitle className="text-lg text-white font-bold">
+            <CardTitle className="text-base sm:text-lg text-white font-bold">
               {lang === "vi" ? "Trợ lý Levi AI" : "Levi AI Assistant"}
             </CardTitle>
             <p className="text-xs text-white/70">
@@ -282,7 +282,7 @@ export function AdvisorChat() {
       </CardHeader>
 
       <div
-        className="flex-1 overflow-y-auto p-6 space-y-4"
+        className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4"
         style={{ minHeight: 0 }}
       >
         {messages.map((m) => {
@@ -291,7 +291,7 @@ export function AdvisorChat() {
             <div
               key={m.id}
               className={cn(
-                "w-fit max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+                "w-fit max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm shadow-sm",
                 isUser
                   ? "ml-auto bg-primary text-primary-foreground"
                   : "mr-auto bg-muted text-foreground",
@@ -344,7 +344,7 @@ export function AdvisorChat() {
 
       <form
         onSubmit={handleSubmit}
-        className="shrink-0 p-4 border-t bg-white dark:bg-gray-900"
+        className="shrink-0 p-3 sm:p-4 border-t bg-white dark:bg-gray-900"
       >
         <div className="flex items-center gap-2">
           <Input
@@ -355,14 +355,14 @@ export function AdvisorChat() {
                 ? "Hỏi Levi AI về tài chính..."
                 : "Ask Levi AI about finance..."
             }
-            className="flex-1 h-12 border-none bg-muted/50 rounded-xl focus-visible:ring-primary"
+            className="flex-1 h-11 sm:h-12 border-none bg-muted/50 rounded-xl focus-visible:ring-primary text-sm"
             disabled={isLoading}
           />
           <Button
             type="submit"
             size="icon"
             disabled={isLoading || !input}
-            className="h-12 w-12 rounded-xl shadow-lg shadow-primary/20"
+            className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl shadow-lg shadow-primary/20"
           >
             <Send className="h-5 w-5" />
           </Button>

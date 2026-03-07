@@ -43,11 +43,27 @@ CREATE TABLE budgets (
   UNIQUE(user_id, category_id, period)
 );
 
+-- Create recurring_transactions table
+CREATE TABLE recurring_transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  category_id UUID REFERENCES categories ON DELETE SET NULL,
+  amount DECIMAL(15, 2) NOT NULL,
+  type TEXT CHECK (type IN ('income', 'expense')) NOT NULL,
+  note TEXT,
+  frequency TEXT CHECK (frequency IN ('daily', 'weekly', 'monthly', 'yearly')) DEFAULT 'monthly' NOT NULL,
+  next_date DATE NOT NULL,
+  last_processed DATE,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable RLS (Row Level Security)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recurring_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Policies for profiles
 CREATE POLICY "Users can view their own profile" ON profiles 
@@ -67,4 +83,8 @@ CREATE POLICY "Users can manage their own transactions" ON transactions
 
 -- Policies for budgets
 CREATE POLICY "Users can manage their own budgets" ON budgets 
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Policies for recurring_transactions
+CREATE POLICY "Users can manage their own recurring transactions" ON recurring_transactions 
   FOR ALL USING (auth.uid() = user_id);

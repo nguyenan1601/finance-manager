@@ -29,7 +29,7 @@ export function TransactionItem({
         className,
       )}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0 overflow-hidden">
         <div
           className={cn(
             "h-10 w-10 rounded-full flex items-center justify-center shrink-0",

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { Loader2 } from "lucide-react";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       setIsAuthenticated(true);
       setIsChecking(false);
+
+      // Trigger recurring transaction processing silently
+      db.processRecurringTransactions().catch((err) =>
+        console.error("Failed to process recurring transactions:", err),
+      );
     }
 
     checkAuth();

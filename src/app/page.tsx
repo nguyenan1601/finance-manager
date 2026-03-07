@@ -147,15 +147,17 @@ export default function Home() {
   return (
     <DashboardLayout>
       {/* AI Smart Input - Quick Access */}
-      <div className="mb-10 max-w-2xl mx-auto">
-        <h2 className="text-center mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+      <div className="mb-6 sm:mb-10 max-w-2xl mx-auto px-1 sm:px-0">
+        <h2 className="text-center mb-3 sm:mb-4 text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-widest">
           {t("home.quickAiInput")}
         </h2>
-        <SmartInput onAdd={fetchDashboardData} />
+        <div className="flex flex-col gap-3">
+          <SmartInput onAdd={fetchDashboardData} />
+        </div>
       </div>
 
       {/* Thống kê Tổng quan */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title={t("home.totalBalance")}
           value={`${stats.totalBalance.toLocaleString(currencyFormat)} ${currencySymbol}`}
@@ -183,13 +185,15 @@ export default function Home() {
         />
       </div>
 
-      <div className="mt-8 grid gap-6 grid-cols-1 lg:grid-cols-7">
+      <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-7">
         {/* Biểu đồ xu hướng */}
         <Card className="lg:col-span-4 border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">{t("home.spendingTrend")}</CardTitle>
+          <CardHeader className="px-4 sm:px-6 pb-2 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">
+              {t("home.spendingTrend")}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="h-[350px] p-6">
+          <CardContent className="h-[250px] sm:h-[350px] px-2 sm:p-6">
             {isLoading ? (
               <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -269,9 +273,9 @@ export default function Home() {
 
         {/* Giao dịch gần nhất */}
         <Card className="lg:col-span-3 border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg text-primary flex items-center">
-              <CreditCard className="mr-2 h-5 w-5" />
+          <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6">
+            <CardTitle className="text-base sm:text-lg text-primary flex items-center">
+              <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               {t("home.recentTransactions")}
             </CardTitle>
             <button
