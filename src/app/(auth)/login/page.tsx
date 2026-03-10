@@ -131,12 +131,12 @@ export default function LoginPage() {
                 />
               </div>
               <div className="flex justify-end">
-                <button
-                  type="button"
+                <Link
+                  href="/forgot-password"
                   className="text-xs text-primary font-medium hover:underline"
                 >
                   Quên mật khẩu?
-                </button>
+                </Link>
               </div>
             </div>
 
