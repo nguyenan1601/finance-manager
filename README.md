@@ -45,7 +45,7 @@
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/your-username/finance-manager.git
+git clone https://github.com/nguyenan1601/finance-manager.git
 cd finance-manager/finance-app
 ```
 
