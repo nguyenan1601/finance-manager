@@ -21,7 +21,7 @@ function post(body: unknown) {
 
 beforeEach(() => {
   generateObject.mockReset();
-  process.env.GEMINI_API_KEYS = "key-1";
+  process.env.DEEPSEEK_API_KEYS = "key-1";
 });
 
 afterEach(() => {
@@ -99,7 +99,7 @@ describe("POST /api/ai/parse-transaction", () => {
   });
 
   it("returns 500 when no API key is configured", async () => {
-    delete process.env.GEMINI_API_KEYS;
+    delete process.env.DEEPSEEK_API_KEYS;
     globalThis.fetch = vi.fn(async () =>
       new Response(JSON.stringify({ result: "success", rates: { USD: 0.00004 } })),
     ) as unknown as typeof fetch;
@@ -107,6 +107,6 @@ describe("POST /api/ai/parse-transaction", () => {
     const response = await post({ text: "x" });
 
     expect(response.status).toBe(500);
-    expect((await response.json()).details).toMatch(/No Gemini API key/);
+    expect((await response.json()).details).toMatch(/No DeepSeek API key/);
   });
 });

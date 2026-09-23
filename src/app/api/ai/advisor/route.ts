@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import { streamText, convertToModelMessages } from "ai";
 import { pickApiKey } from "@/lib/ai-keys";
 
@@ -12,12 +12,12 @@ export async function POST(req: Request) {
     // Convert UI messages to model messages for streamText
     const modelMessages = await convertToModelMessages(uiMessages);
 
-    const google = createGoogleGenerativeAI({
-      apiKey: pickApiKey(process.env.GEMINI_API_KEYS),
+    const deepseek = createDeepSeek({
+      apiKey: pickApiKey(process.env.DEEPSEEK_API_KEYS),
     });
 
     const result = streamText({
-      model: google("gemini-3.6-flash"),
+      model: deepseek("deepseek-flash"),
       system: `Bạn là trợ lý AI thông minh mang tên Levi AI, được tích hợp trong ứng dụng quản lý tài chính cá nhân.
 
 VAI TRÒ CHÍNH - TRỢ LÝ TÀI CHÍNH:

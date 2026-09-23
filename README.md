@@ -36,7 +36,7 @@
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS, Shadcn UI, Lucide React
 - **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL)
-- **AI Engine**: Google Gemini (via SDK)
+- **AI Engine**: DeepSeek (via Vercel AI SDK)
 - **Charts**: Recharts
 - **Date Handling**: date-fns (với locale vi/enUS)
 

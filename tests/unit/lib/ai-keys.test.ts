@@ -22,9 +22,9 @@ describe("pickApiKey", () => {
   });
 
   it("throws a clear error instead of silently returning undefined", () => {
-    expect(() => pickApiKey("")).toThrowError(/No Gemini API key configured/);
+    expect(() => pickApiKey("")).toThrowError(/No DeepSeek API key configured/);
     expect(() => pickApiKey(undefined)).toThrowError(
-      /No Gemini API key configured/,
+      /No DeepSeek API key configured/,
     );
   });
 

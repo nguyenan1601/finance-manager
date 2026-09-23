@@ -19,7 +19,7 @@ function post(body: unknown) {
 
 beforeEach(() => {
   generateObject.mockReset();
-  process.env.GEMINI_API_KEYS = "key-1";
+  process.env.DEEPSEEK_API_KEYS = "key-1";
 });
 
 describe("POST /api/ai/scan-bill", () => {

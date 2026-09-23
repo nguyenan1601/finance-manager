@@ -79,7 +79,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
-          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS || 'placeholder-gemini-key' }}
+          DEEPSEEK_API_KEYS: ${{ secrets.DEEPSEEK_API_KEYS || 'placeholder-deepseek-key' }}
 
   # These two jobs talk to the live Supabase project with the service role key, so
   # they only run where that secret exists (not on pull requests from forks) and
@@ -158,7 +158,7 @@ jobs:
           cat > .env.local <<EOF
           NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TARGET_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TARGET_SUPABASE_ANON_KEY }}
-          GEMINI_API_KEYS=${{ secrets.GEMINI_API_KEYS }}
+          DEEPSEEK_API_KEYS=${{ secrets.DEEPSEEK_API_KEYS }}
           EOF
       - name: Write test environment
         run: |

@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { pickApiKey } from "@/lib/ai-keys";
@@ -15,12 +15,12 @@ export async function POST(req: Request) {
 
     const today = currentDate || new Date().toISOString().split("T")[0];
 
-    const google = createGoogleGenerativeAI({
-      apiKey: pickApiKey(process.env.GEMINI_API_KEYS),
+    const deepseek = createDeepSeek({
+      apiKey: pickApiKey(process.env.DEEPSEEK_API_KEYS),
     });
 
     const { object } = await generateObject({
-      model: google("gemini-3.6-flash"),
+      model: deepseek("deepseek-flash"),
       messages: [
         {
           role: "user",

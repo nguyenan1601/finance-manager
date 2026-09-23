@@ -1,5 +1,5 @@
 export interface ApiKeySource {
-  GEMINI_API_KEYS?: string;
+  DEEPSEEK_API_KEYS?: string;
 }
 
 export function parseApiKeys(raw: string | undefined | null): string[] {
@@ -19,7 +19,7 @@ export function pickApiKey(
 
   if (keys.length === 0) {
     throw new Error(
-      "No Gemini API key configured. Set GEMINI_API_KEYS to one or more comma-separated keys.",
+      "No DeepSeek API key configured. Set DEEPSEEK_API_KEYS to one or more comma-separated keys.",
     );
   }
 
