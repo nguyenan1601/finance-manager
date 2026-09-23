@@ -42,13 +42,12 @@ export function Header() {
         <MobileNav />
       </div>
 
-      <div className="hidden flex-1 lg:block"></div>
-
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         <NotificationDropdown />
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Tài khoản"
           className="h-10 w-10 rounded-full border bg-muted/20 overflow-hidden p-0 cursor-pointer"
         >
           {avatarUrl ? (
@@ -58,7 +57,7 @@ export function Header() {
             >
               <Image
                 src={avatarUrl}
-                alt="Avatar"
+                alt=""
                 fill
                 className="object-cover"
                 unoptimized // Tránh lỗi loader nếu domain chưa khớp hoàn toàn hoặc cần nhanh
@@ -67,7 +66,7 @@ export function Header() {
           ) : initials ? (
             <span className="text-xs font-bold text-primary">{initials}</span>
           ) : (
-            <User className="h-5 w-5" />
+            <User className="h-5 w-5" aria-hidden="true" />
           )}
         </Button>
       </div>

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -47,6 +47,9 @@ import Image from "next/image";
 import { useTranslation } from "@/hooks/use-translation";
 import { Language } from "@/lib/i18n/dictionaries";
 import { useTheme } from "next-themes";
+import { PageHeader } from "@/components/common/page-header";
+import { PageShell } from "@/components/common/page-shell";
+import { Panel } from "@/components/common/panel";
 
 export default function SettingsPage() {
   const { t, lang, setLang: setGlobalLang } = useTranslation();
@@ -212,10 +215,30 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
-        </div>
+        <PageShell className="mx-auto max-w-4xl">
+          <PageHeader
+            title={t("settings.title")}
+            description={t("settings.subtitle")}
+          />
+          <div className="grid gap-6">
+            <div className="space-y-6 rounded-xl bg-card p-6 shadow-sm">
+              <Skeleton className="h-5 w-40" />
+              <div className="flex flex-col items-center gap-6 sm:flex-row">
+                <Skeleton className="h-24 w-24 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+              </div>
+              <Skeleton className="h-11 w-full rounded-lg" />
+            </div>
+            <div className="space-y-6 rounded-xl bg-card p-6 shadow-sm">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+            </div>
+          </div>
+        </PageShell>
       </DashboardLayout>
     );
   }
@@ -226,63 +249,58 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 max-w-4xl mx-auto">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {t("settings.title")}
-            </h1>
-            <p className="text-muted-foreground italic">
-              {t("settings.subtitle")}
-            </p>
-          </div>
-
-          <Dialog
-            open={isLogoutDialogOpen}
-            onOpenChange={setIsLogoutDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                {t("common.logout")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{t("common.logoutConfirmTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("common.logoutConfirmDesc")}
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="gap-2 sm:gap-0">
+      <PageShell className="mx-auto max-w-4xl">
+        <PageHeader
+          title={t("settings.title")}
+          description={t("settings.subtitle")}
+          actions={
+            <Dialog
+              open={isLogoutDialogOpen}
+              onOpenChange={setIsLogoutDialogOpen}
+            >
+              <DialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  onClick={() => setIsLogoutDialogOpen(false)}
-                  className="rounded-lg"
+                  className="rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 >
-                  {t("common.cancel")}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleLogout}
-                  className="rounded-lg shadow-lg shadow-destructive/20"
-                >
+                  <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
                   {t("common.logout")}
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t("common.logoutConfirmTitle")}</DialogTitle>
+                  <DialogDescription>
+                    {t("common.logoutConfirmDesc")}
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsLogoutDialogOpen(false)}
+                    className="rounded-lg"
+                  >
+                    {t("common.cancel")}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleLogout}
+                    className="rounded-lg shadow-lg shadow-destructive/20"
+                  >
+                    {t("common.logout")}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          }
+        />
 
         <div className="grid gap-6">
           {/* Profile Section */}
-          <Card className="border-none shadow-sm rounded-2xl overflow-hidden font-sans">
-            <CardHeader className="flex flex-row items-center gap-4 pb-2 bg-muted/20">
-              <div className="p-2 bg-primary/10 rounded-xl">
-                <User className="h-5 w-5 text-primary" />
+          <Panel className="overflow-hidden">
+            <CardHeader className="flex flex-row items-center gap-4 bg-muted/20 pb-2">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <User className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <div>
                 <CardTitle className="text-lg font-bold">
@@ -291,19 +309,26 @@ export default function SettingsPage() {
                 <CardDescription>{t("settings.profileDesc")}</CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 pt-6 font-sans">
-              <div className="flex flex-col items-center sm:flex-row gap-6 pb-2">
-                <div className="relative group">
-                  <div className="h-24 w-24 rounded-3xl bg-primary/10 border-4 border-background shadow-xl flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
+            <CardContent className="space-y-6 pt-6">
+              <div className="flex flex-col items-center gap-6 pb-2 sm:flex-row">
+                <div className="group relative">
+                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-background bg-primary/10 shadow-xl transition-transform group-hover:scale-105">
                     {isAvatarUploading ? (
-                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 backdrop-blur-sm">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <div
+                        role="status"
+                        aria-busy="true"
+                        className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm"
+                      >
+                        <Loader2
+                          className="h-8 w-8 animate-spin text-primary"
+                          aria-hidden="true"
+                        />
                       </div>
                     ) : avatarUrl ? (
-                      <div className="h-full w-full relative">
+                      <div className="relative h-full w-full">
                         <Image
                           src={avatarUrl}
-                          alt="Avatar"
+                          alt=""
                           fill
                           className="object-cover"
                           unoptimized
@@ -317,9 +342,12 @@ export default function SettingsPage() {
                   </div>
                   <label
                     htmlFor="avatar-upload"
-                    className="absolute -bottom-1 -right-1 h-8 w-8 bg-primary text-white rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors border-2 border-background"
+                    className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-2 border-background bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
                   >
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4" aria-hidden="true" />
+                    <span className="sr-only">
+                      {lang === "vi" ? "Đổi ảnh đại diện" : "Change avatar"}
+                    </span>
                     <input
                       id="avatar-upload"
                       type="file"
@@ -331,10 +359,10 @@ export default function SettingsPage() {
                   </label>
                 </div>
                 <div className="flex flex-col gap-2 text-center sm:text-left">
-                  <h3 className="font-bold text-xl">
+                  <h2 className="text-xl font-bold">
                     {fullName || (lang === "vi" ? "Người dùng" : "User")}
-                  </h3>
-                  <p className="text-sm text-muted-foreground italic bg-muted/50 px-3 py-1 rounded-full">
+                  </h2>
+                  <p className="rounded-full bg-muted/50 px-3 py-1 text-sm italic text-muted-foreground">
                     {user?.email}
                   </p>
                 </div>
@@ -348,7 +376,7 @@ export default function SettingsPage() {
                     id="fullname"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="rounded-xl h-11"
+                    className="h-11 rounded-lg"
                     placeholder={
                       lang === "vi" ? "VD: Nguyễn Văn A" : "E.g: John Doe"
                     }
@@ -362,18 +390,21 @@ export default function SettingsPage() {
                     id="email"
                     value={user?.email || ""}
                     disabled
-                    className="rounded-xl h-11 bg-muted/50 text-muted-foreground"
+                    className="h-11 rounded-lg bg-muted/50 text-muted-foreground"
                   />
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Panel>
 
           {/* Preferences Section */}
-          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-row items-center gap-4 pb-2 bg-muted/20">
-              <div className="p-2 bg-amber-500/10 rounded-xl">
-                <Palette className="h-5 w-5 text-amber-500" />
+          <Panel className="overflow-hidden">
+            <CardHeader className="flex flex-row items-center gap-4 bg-muted/20 pb-2">
+              <div className="rounded-lg bg-warning-muted p-2">
+                <Palette
+                  className="h-5 w-5 text-warning"
+                  aria-hidden="true"
+                />
               </div>
               <div>
                 <CardTitle className="text-lg font-bold">
@@ -387,12 +418,14 @@ export default function SettingsPage() {
             <CardContent className="space-y-6 pt-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label className="font-bold">{t("settings.language")}</Label>
+                  <Label htmlFor="language" className="font-bold">
+                    {t("settings.language")}
+                  </Label>
                   <Select
                     value={language}
                     onValueChange={(val: Language) => setLanguage(val)}
                   >
-                    <SelectTrigger className="rounded-xl h-11">
+                    <SelectTrigger id="language" className="h-11 rounded-lg">
                       <SelectValue
                         placeholder={
                           lang === "vi" ? "Chọn ngôn ngữ" : "Select language"
@@ -406,9 +439,11 @@ export default function SettingsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold">{t("settings.theme")}</Label>
+                  <Label htmlFor="theme" className="font-bold">
+                    {t("settings.theme")}
+                  </Label>
                   <Select value={theme} onValueChange={setTheme}>
-                    <SelectTrigger className="rounded-xl h-11">
+                    <SelectTrigger id="theme" className="h-11 rounded-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -423,9 +458,11 @@ export default function SettingsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold">{t("settings.currency")}</Label>
+                  <Label htmlFor="currency" className="font-bold">
+                    {t("settings.currency")}
+                  </Label>
                   <Select value={currency} onValueChange={setCurrency}>
-                    <SelectTrigger className="rounded-xl h-11">
+                    <SelectTrigger id="currency" className="h-11 rounded-lg">
                       <SelectValue
                         placeholder={
                           lang === "vi" ? "Chọn đơn vị" : "Select currency"
@@ -440,13 +477,13 @@ export default function SettingsPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Panel>
 
           {/* Security Section */}
-          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-row items-center gap-4 pb-2 bg-muted/20">
-              <div className="p-2 bg-rose-500/10 rounded-xl">
-                <Shield className="h-5 w-5 text-rose-500" />
+          <Panel className="overflow-hidden">
+            <CardHeader className="flex flex-row items-center gap-4 bg-muted/20 pb-2">
+              <div className="rounded-lg bg-danger-muted p-2">
+                <Shield className="h-5 w-5 text-danger" aria-hidden="true" />
               </div>
               <div>
                 <CardTitle className="text-lg font-bold">
@@ -456,26 +493,26 @@ export default function SettingsPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
-              <div className="flex items-center justify-between py-4 border-b">
+              <div className="flex items-center justify-between border-b py-4">
                 <div className="space-y-1">
                   <p className="text-sm font-bold">
                     {t("settings.changePassword")}
                   </p>
-                  <p className="text-xs text-muted-foreground italic">
+                  <p className="text-xs italic text-muted-foreground">
                     {t("settings.passwordDesc")}
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-xl h-9 px-4"
+                  className="h-9 rounded-lg px-4"
                   onClick={() => setIsPasswordDialogOpen(true)}
                 >
-                  <KeyRound className="mr-2 h-4 w-4" />
+                  <KeyRound className="mr-2 h-4 w-4" aria-hidden="true" />
                   {t("settings.changePassword")}
                 </Button>
               </div>
-              <div className="flex items-center justify-between py-4 border-b opacity-50 cursor-not-allowed">
+              <div className="flex cursor-not-allowed items-center justify-between border-b py-4 opacity-50">
                 <div className="space-y-1">
                   <p className="text-sm font-bold">{t("settings.twoFactor")}</p>
                   <p className="text-xs text-muted-foreground">
@@ -489,28 +526,32 @@ export default function SettingsPage() {
                 </Badge>
               </div>
             </CardContent>
-          </Card>
+          </Panel>
 
           {/* Save Button for Profile & Preferences */}
           <div className="flex justify-end pt-2">
             <Button
-              className={`rounded-xl h-12 px-10 font-black shadow-lg transition-all duration-300 ${
+              className={`h-12 rounded-lg px-10 font-black shadow-lg transition-all duration-300 ${
                 isSaved
-                  ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+                  ? "bg-success hover:bg-success/90 shadow-success/20"
                   : "shadow-primary/20"
               }`}
               onClick={handleSaveProfile}
               disabled={isSaving}
+              aria-busy={isSaving}
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2
+                    className="mr-2 h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
                   {t("settings.saving")}
                 </>
               ) : isSaved ? (
                 <>
-                  <Check className="mr-2 h-4 w-4" />
-                  {t("settings.saved")} ✓
+                  <Check className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t("settings.saved")}
                 </>
               ) : (
                 t("settings.saveAll")
@@ -518,13 +559,11 @@ export default function SettingsPage() {
             </Button>
           </div>
 
-          <div className="h-8" />
-
           {/* Danger Zone */}
-          <Card className="border-rose-100 bg-rose-50/30 dark:bg-rose-950/10 shadow-none rounded-2xl overflow-hidden">
+          <Panel className="overflow-hidden border border-danger/20 bg-danger/5 shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-bold text-rose-600 flex items-center gap-2">
-                <Shield className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg font-bold text-danger">
+                <Shield className="h-5 w-5" aria-hidden="true" />
                 {t("settings.dangerZone")}
               </CardTitle>
               <CardDescription>{t("settings.dangerDesc")}</CardDescription>
@@ -535,14 +574,14 @@ export default function SettingsPage() {
                   <p className="text-sm font-bold">
                     {t("settings.clearTransactions")}
                   </p>
-                  <p className="text-xs text-muted-foreground italic">
+                  <p className="text-xs italic text-muted-foreground">
                     {t("settings.clearDesc")}
                   </p>
                 </div>
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="rounded-xl"
+                  className="rounded-lg"
                   onClick={async () => {
                     const confirmMsg =
                       lang === "vi"
@@ -569,16 +608,16 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Panel>
         </div>
-      </div>
+      </PageShell>
 
       {/* Change Password Dialog */}
       <Dialog
         open={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {t("settings.changePassword")}
@@ -600,7 +639,7 @@ export default function SettingsPage() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="rounded-xl h-11"
+                  className="h-11 rounded-lg"
                   required
                 />
               </div>
@@ -613,7 +652,7 @@ export default function SettingsPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="rounded-xl h-11"
+                  className="h-11 rounded-lg"
                   required
                 />
               </div>
@@ -623,18 +662,22 @@ export default function SettingsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsPasswordDialogOpen(false)}
-                className="rounded-xl h-11"
+                className="h-11 rounded-lg"
               >
                 {t("common.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={isPasswordChanging}
-                className="rounded-xl h-11 px-6 font-bold"
+                aria-busy={isPasswordChanging}
+                className="h-11 rounded-lg px-6 font-bold"
               >
                 {isPasswordChanging ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2
+                      className="mr-2 h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
                     {lang === "vi" ? "Đang cập nhật..." : "Updating..."}
                   </>
                 ) : lang === "vi" ? (

@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/hooks/use-translation";
+import { categoryColor } from "@/lib/ui";
 
 export function NotificationDropdown() {
   const { lang } = useTranslation();
@@ -108,9 +109,12 @@ export function NotificationDropdown() {
         <Button
           variant="ghost"
           size="icon"
+          aria-label={
+            unreadCount > 0 ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo"
+          }
           className="relative h-10 w-10 rounded-full cursor-pointer"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
             <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -119,7 +123,7 @@ export function NotificationDropdown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-80 rounded-2xl p-0 shadow-xl"
+        className="w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-0 shadow-xl"
         align="end"
         forceMount
       >
@@ -130,11 +134,14 @@ export function NotificationDropdown() {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-auto max-h-[min(400px,60vh)]">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center px-4">
               <div className="p-3 bg-muted rounded-full mb-3">
-                <Bell className="h-6 w-6 text-muted-foreground opacity-50" />
+                <Bell
+                  className="h-6 w-6 text-muted-foreground opacity-50"
+                  aria-hidden="true"
+                />
               </div>
               <p className="text-sm font-medium">Chưa có thông báo nào</p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -155,15 +162,15 @@ export function NotificationDropdown() {
                   >
                     <div className="flex w-full items-center gap-3">
                       <div
-                        className="h-9 w-9 rounded-xl flex items-center justify-center text-white"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-white"
                         style={{
-                          backgroundColor: t.categories?.color || "#6366f1",
+                          backgroundColor: categoryColor(t.categories?.color),
                         }}
                       >
                         {t.type === "income" ? (
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-4 w-4" aria-hidden="true" />
                         ) : (
-                          <ShoppingBag className="h-4 w-4" />
+                          <ShoppingBag className="h-4 w-4" aria-hidden="true" />
                         )}
                       </div>
                       <div className="flex-1 overflow-hidden">
@@ -185,10 +192,13 @@ export function NotificationDropdown() {
                         </p>
                       </div>
                       {isUnread && (
-                        <div className="h-2 w-2 rounded-full bg-primary" />
+                        <div
+                          className="h-2 w-2 rounded-full bg-primary"
+                          aria-hidden="true"
+                        />
                       )}
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-1 self-end">
+                    <p className="text-xs text-muted-foreground mt-1 self-end">
                       {formatDistanceToNow(new Date(t.date), {
                         addSuffix: true,
                         locale: vi,

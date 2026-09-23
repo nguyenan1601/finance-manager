@@ -245,17 +245,20 @@ export function AdvisorChat() {
   };
 
   return (
-    <Card className="flex flex-col h-[calc(100dvh-8rem)] sm:h-[650px] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm dark:bg-gray-900/50">
+    <Card className="flex flex-col h-[calc(100dvh-13rem)] sm:h-[650px] border-none shadow-xl overflow-hidden bg-card/60 backdrop-blur-sm">
       <CardHeader className="shrink-0 bg-primary px-4 sm:px-6 py-3 sm:py-4 flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/30">
-            <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary-foreground/30 bg-primary-foreground/20 backdrop-blur-md sm:h-10 sm:w-10">
+            <Bot
+              className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6"
+              aria-hidden="true"
+            />
           </div>
           <div>
-            <CardTitle className="text-base sm:text-lg text-white font-bold">
+            <CardTitle className="text-base sm:text-lg text-primary-foreground font-bold">
               {lang === "vi" ? "Trợ lý Levi AI" : "Levi AI Assistant"}
             </CardTitle>
-            <p className="text-xs text-white/70">
+            <p className="text-xs text-primary-foreground/70">
               {isLoading
                 ? lang === "vi"
                   ? "Đang trả lời..."
@@ -272,16 +275,25 @@ export function AdvisorChat() {
             size="icon"
             onClick={handleNewChat}
             disabled={isLoading}
+            aria-label={lang === "vi" ? "Cuộc hội thoại mới" : "New chat"}
             title={lang === "vi" ? "Cuộc hội thoại mới" : "New chat"}
-            className="h-9 w-9 rounded-lg text-white/80 hover:text-white hover:bg-white/20"
+            className="h-9 w-9 rounded-lg text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/20"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
           </Button>
-          <Sparkles className="h-5 w-5 text-yellow-300 animate-pulse" />
+          <Sparkles
+            className="h-5 w-5 text-primary-foreground/90 animate-pulse"
+            aria-hidden="true"
+          />
         </div>
       </CardHeader>
 
       <div
+        role="log"
+        aria-live="polite"
+        aria-label={
+          lang === "vi" ? "Hội thoại với Levi AI" : "Chat with Levi AI"
+        }
         className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4"
         style={{ minHeight: 0 }}
       >
@@ -299,9 +311,9 @@ export function AdvisorChat() {
             >
               <div className="flex items-center gap-2 mb-1.5">
                 {isUser ? (
-                  <User className="h-4 w-4 shrink-0" />
+                  <User className="h-4 w-4 shrink-0" aria-hidden="true" />
                 ) : (
-                  <Bot className="h-4 w-4 shrink-0" />
+                  <Bot className="h-4 w-4 shrink-0" aria-hidden="true" />
                 )}
                 <span className="font-bold text-xs">
                   {isUser ? (lang === "vi" ? "Bạn" : "You") : "Levi AI"}
@@ -319,9 +331,12 @@ export function AdvisorChat() {
         })}
 
         {isLoading && (
-          <div className="w-fit max-w-[80%] mr-auto rounded-2xl bg-muted px-4 py-3 text-sm">
+          <div
+            role="status"
+            className="w-fit max-w-[80%] mr-auto rounded-2xl bg-muted px-4 py-3 text-sm"
+          >
             <div className="flex items-center gap-2 italic text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               {lang === "vi"
                 ? "Levi AI đang suy nghĩ..."
                 : "Levi AI is thinking..."}
@@ -330,7 +345,10 @@ export function AdvisorChat() {
         )}
 
         {error && (
-          <div className="w-fit max-w-[85%] mr-auto rounded-2xl bg-red-100 text-red-700 px-4 py-3 text-sm">
+          <div
+            role="alert"
+            className="w-fit max-w-[85%] mr-auto rounded-2xl bg-danger-muted text-danger px-4 py-3 text-sm"
+          >
             ⚠️ {lang === "vi" ? "Lỗi" : "Error"}:{" "}
             {error.message ||
               (lang === "vi"
@@ -344,27 +362,33 @@ export function AdvisorChat() {
 
       <form
         onSubmit={handleSubmit}
-        className="shrink-0 p-3 sm:p-4 border-t bg-white dark:bg-gray-900"
+        className="shrink-0 p-3 sm:p-4 border-t bg-card"
       >
         <div className="flex items-center gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            aria-label={
+              lang === "vi"
+                ? "Hỏi Levi AI về tài chính"
+                : "Ask Levi AI about finance"
+            }
             placeholder={
               lang === "vi"
                 ? "Hỏi Levi AI về tài chính..."
                 : "Ask Levi AI about finance..."
             }
-            className="flex-1 h-11 sm:h-12 border-none bg-muted/50 rounded-xl focus-visible:ring-primary text-sm"
+            className="flex-1 h-11 sm:h-12 border-none bg-muted/50 rounded-lg focus-visible:ring-primary text-sm"
             disabled={isLoading}
           />
           <Button
             type="submit"
             size="icon"
+            aria-label={lang === "vi" ? "Gửi tin nhắn" : "Send message"}
             disabled={isLoading || !input}
-            className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl shadow-lg shadow-primary/20"
+            className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg shadow-lg shadow-primary/20"
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
       </form>

@@ -129,25 +129,28 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
   return (
     <div className="w-full space-y-4">
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-indigo-500 rounded-2xl blur opacity-25 group-focus-within:opacity-50 transition duration-1000"></div>
-        <div className="relative flex items-center bg-card rounded-2xl p-1.5 shadow-sm border">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-chart-2 rounded-xl blur opacity-25 group-focus-within:opacity-50 transition duration-1000"></div>
+        <div className="relative flex items-center bg-card rounded-xl p-1.5 shadow-sm border">
           <Input
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleParse()}
+            aria-label={t("common.smartInputPlaceholder")}
             placeholder={t("common.smartInputPlaceholder")}
-            className="border-none focus-visible:ring-0 text-md h-12 bg-transparent"
+            className="border-none focus-visible:ring-0 h-12 bg-transparent"
           />
           <Button
             onClick={handleParse}
             disabled={isLoading || !text}
-            className="rounded-xl h-11 px-3 sm:px-4 shadow-lg shadow-primary/20 shrink-0"
+            aria-label={lang === "vi" ? "Xử lý AI" : "Process AI"}
+            aria-busy={isLoading}
+            className="rounded-lg h-11 px-3 sm:px-4 shadow-lg shadow-primary/20 shrink-0"
           >
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             ) : (
               <>
-                <Sparkles className="h-4 w-4 sm:mr-2" />
+                <Sparkles className="h-4 w-4 sm:mr-2" aria-hidden="true" />
                 <span className="hidden sm:inline">
                   {lang === "vi" ? "Xử lý AI" : "Process AI"}
                 </span>
@@ -158,8 +161,11 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
       </div>
 
       {success && (
-        <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm animate-in fade-in slide-in-from-left-2 px-2">
-          <Check className="h-4 w-4" />
+        <div
+          role="status"
+          className="flex items-center gap-2 text-success font-medium text-sm animate-in fade-in slide-in-from-left-2 px-2"
+        >
+          <Check className="h-4 w-4" aria-hidden="true" />
           {lang === "vi"
             ? "Đã lưu giao dịch thành công!"
             : "Transaction saved successfully!"}
@@ -167,7 +173,7 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
       )}
 
       {suggestion && (
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -175,7 +181,6 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
                   variant={
                     suggestion.type === "expense" ? "destructive" : "default"
                   }
-                  className="rounded-md"
                 >
                   {suggestion.type === "expense"
                     ? lang === "vi"
@@ -188,8 +193,8 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
                 <Badge variant="outline" className="bg-background">
                   {suggestion.category}
                 </Badge>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium bg-background/50 px-2 py-0.5 rounded-full border border-primary/5">
-                  <CalendarIcon className="h-3 w-3" />
+                <div className="flex items-center gap-1 text-xs text-muted-foreground font-medium bg-background/50 px-2 py-0.5 rounded-full border border-primary/5">
+                  <CalendarIcon className="h-3 w-3" aria-hidden="true" />
                   {new Date(suggestion.date).toLocaleDateString(
                     lang === "vi" ? "vi-VN" : "en-US",
                     {
@@ -221,14 +226,15 @@ export function SmartInput({ onAdd }: { onAdd?: () => void }) {
               <Button
                 onClick={confirmAdd}
                 size="lg"
-                className="flex-1 sm:flex-none rounded-xl shadow-md"
+                className="flex-1 sm:flex-none rounded-lg shadow-md"
                 disabled={isAdding}
+                aria-busy={isAdding}
               >
                 {isAdding ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 ) : (
                   <>
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                     {lang === "vi" ? "Thêm" : "Add"}
                   </>
                 )}

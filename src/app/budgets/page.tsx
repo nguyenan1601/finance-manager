@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -47,6 +48,15 @@ import {
   RecurringTransaction,
 } from "@/lib/db";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/common/page-header";
+import { PageShell } from "@/components/common/page-shell";
+import { Panel } from "@/components/common/panel";
+import { EmptyState } from "@/components/common/empty-state";
+import {
+  ListSkeleton,
+  StatCardSkeleton,
+} from "@/components/common/skeletons";
+import { amountTone, categoryColor } from "@/lib/ui";
 
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -341,81 +351,94 @@ export default function BudgetsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-8">
+      <PageShell>
         {/* Header */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              {t("common.budgets")}
-            </h1>
-          </div>
-        </div>
+        <PageHeader
+          title={t("common.budgets")}
+          description={
+            lang === "vi"
+              ? "Thiết lập hạn mức chi tiêu theo danh mục và quản lý các khoản cố định."
+              : "Set spending limits by category and manage recurring items."
+          }
+        />
 
         <Tabs defaultValue="budgets" className="space-y-4 sm:space-y-6">
-          <TabsList className="bg-muted/50 p-1 rounded-xl h-10 sm:h-11 w-full sm:w-auto">
+          <TabsList className="h-10 w-full bg-muted/50 p-1 sm:h-11 sm:w-auto">
             <TabsTrigger
               value="budgets"
-              className="rounded-lg px-3 sm:px-6 text-xs sm:text-sm font-semibold data-[state=active]:shadow-sm flex-1 sm:flex-none"
+              className="flex-1 rounded-lg px-3 text-xs font-semibold data-[state=active]:shadow-sm sm:flex-none sm:px-6 sm:text-sm"
             >
-              <Wallet className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Wallet
+                className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4"
+                aria-hidden="true"
+              />
               {lang === "vi" ? "Hạn mức" : "Limits"}
             </TabsTrigger>
             <TabsTrigger
               value="recurring"
-              className="rounded-lg px-3 sm:px-6 text-xs sm:text-sm font-semibold data-[state=active]:shadow-sm flex-1 sm:flex-none"
+              className="flex-1 rounded-lg px-3 text-xs font-semibold data-[state=active]:shadow-sm sm:flex-none sm:px-6 sm:text-sm"
             >
-              <CalendarClock className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <CalendarClock
+                className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4"
+                aria-hidden="true"
+              />
               {lang === "vi" ? "Cố định" : "Recurring"}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="budgets" className="space-y-8 mt-0">
+          <TabsContent value="budgets" className="mt-0 space-y-8">
             {/* Summary Cards moved inside TabsContent if they only represent budgets */}
             <div className="flex justify-end">
               <Button
                 onClick={handleOpenAddDialog}
-                className="rounded-xl shadow-lg shadow-primary/20 h-11 px-6 font-semibold"
+                className="h-11 rounded-lg px-6 font-semibold shadow-lg shadow-primary/20"
               >
-                <Plus className="mr-2 h-5 w-5" />
+                <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
                 {lang === "vi" ? "Thiết lập ngân sách" : "Set up budget"}
               </Button>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-3">
-              <Card className="border-none shadow-sm bg-gradient-to-br from-primary/5 to-transparent">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6">
+              <Panel className="bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                     {lang === "vi" ? "Tổng hạn mức" : "Total limits"}
                   </CardTitle>
-                  <Wallet className="h-4 w-4 text-primary" />
+                  <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl sm:text-2xl font-bold">
+                  <div className="text-xl font-bold sm:text-2xl">
                     {totalBudgeted.toLocaleString(currencyFormat)}{" "}
                     {currencySymbol}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <ArrowUpRight className="h-3 w-3 text-primary" />
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <ArrowUpRight
+                      className="h-3 w-3 text-primary"
+                      aria-hidden="true"
+                    />
                     {lang === "vi"
                       ? "Tổng định mức tháng này"
                       : "Total budget this month"}
                   </p>
                 </CardContent>
-              </Card>
-              <Card className="border-none shadow-sm bg-gradient-to-br from-rose-500/5 to-transparent">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              </Panel>
+              <Panel className="bg-gradient-to-br from-danger/5 to-transparent">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                     {lang === "vi" ? "Đã chi tiêu" : "Spent"}
                   </CardTitle>
-                  <TrendingDown className="h-4 w-4 text-rose-500" />
+                  <TrendingDown
+                    className="h-4 w-4 text-danger"
+                    aria-hidden="true"
+                  />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl sm:text-2xl font-bold">
+                  <div className="text-xl font-bold sm:text-2xl">
                     {totalSpentInBudgets.toLocaleString(currencyFormat)}{" "}
                     {currencySymbol}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {totalBudgeted > 0
                       ? lang === "vi"
                         ? `${Math.round((totalSpentInBudgets / totalBudgeted) * 100)}% hạn mức đã dùng`
@@ -425,20 +448,23 @@ export default function BudgetsPage() {
                         : "No budget set up"}
                   </p>
                 </CardContent>
-              </Card>
-              <Card className="border-none shadow-sm bg-gradient-to-br from-emerald-500/5 to-transparent">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              </Panel>
+              <Panel className="bg-gradient-to-br from-success/5 to-transparent">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                     {lang === "vi" ? "Còn lại" : "Remaining"}
                   </CardTitle>
-                  <PiggyBank className="h-4 w-4 text-emerald-500" />
+                  <PiggyBank
+                    className="h-4 w-4 text-success"
+                    aria-hidden="true"
+                  />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl sm:text-2xl font-bold">
+                  <div className="text-xl font-bold sm:text-2xl">
                     {remainingBudget.toLocaleString(currencyFormat)}{" "}
                     {currencySymbol}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                     {remainingBudget > (lang === "vi" ? 500000 : 25)
                       ? lang === "vi"
                         ? "Bạn đang làm rất tốt!"
@@ -448,47 +474,38 @@ export default function BudgetsPage() {
                         : "Be careful with spending"}
                   </p>
                 </CardContent>
-              </Card>
+              </Panel>
             </div>
 
             {/* Content Area */}
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground font-medium">
-                  {lang === "vi"
-                    ? "Đang phân tích dữ liệu ngân sách..."
-                    : "Analyzing budget data..."}
-                </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
               </div>
             ) : budgets.length === 0 ? (
-              <Card className="border-dashed border-2 bg-muted/20 rounded-2xl">
-                <CardContent className="flex flex-col items-center justify-center py-24 gap-6">
-                  <div className="p-6 rounded-2xl bg-primary/10 ring-8 ring-primary/5">
-                    <Wallet className="h-10 w-10 text-primary" />
-                  </div>
-                  <div className="text-center space-y-2">
-                    <h3 className="text-xl font-bold">
-                      {lang === "vi"
-                        ? "Chưa có ngân sách nào"
-                        : "No budgets yet"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                      {lang === "vi"
-                        ? "Thiết lập ngân sách giúp bạn kiểm soát chi tiêu tốt hơn. Bạn có thể đặt hạn mức riêng cho từng danh mục như Ăn uống, Giải trí..."
-                        : "Setting a budget helps you control spending better. You can set individual limits for categories like Food, Entertainment..."}
-                    </p>
-                  </div>
+              <EmptyState
+                icon={Wallet}
+                title={
+                  lang === "vi" ? "Chưa có ngân sách nào" : "No budgets yet"
+                }
+                description={
+                  lang === "vi"
+                    ? "Thiết lập ngân sách giúp bạn kiểm soát chi tiêu tốt hơn. Bạn có thể đặt hạn mức riêng cho từng danh mục như Ăn uống, Giải trí..."
+                    : "Setting a budget helps you control spending better. You can set individual limits for categories like Food, Entertainment..."
+                }
+                action={
                   <Button
                     onClick={handleOpenAddDialog}
-                    className="mt-2 rounded-xl px-8 h-11 font-semibold"
+                    className="rounded-lg px-8 h-11 font-semibold"
                   >
                     {lang === "vi" ? "Bắt đầu ngay" : "Start now"}
                   </Button>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
-              <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {budgets.map((budget) => {
                   const spent = monthlyExpenses[budget.category_id] || 0;
                   const percent = Math.round((spent / budget.amount) * 100);
@@ -497,53 +514,71 @@ export default function BudgetsPage() {
                   const isWarning = percent > 85 && !isOver;
 
                   return (
-                    <Card
+                    <Panel
                       key={budget.id}
-                      className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 rounded-2xl"
+                      className="group overflow-hidden transition-all duration-300 hover:shadow-md"
                     >
-                      <CardHeader className="flex flex-row items-center justify-between pb-3 bg-muted/30">
+                      <CardHeader className="flex flex-row items-center justify-between bg-muted/30 pb-3">
                         <div className="flex items-center gap-3">
                           <div
-                            className="h-10 w-10 rounded-xl flex items-center justify-center text-white shadow-sm"
+                            className="flex h-10 w-10 items-center justify-center rounded-lg text-white shadow-sm"
                             style={{
-                              backgroundColor:
-                                budget.categories?.color || "#6366f1",
+                              backgroundColor: categoryColor(
+                                budget.categories?.color,
+                              ),
                             }}
                           >
-                            <Wallet className="h-5 w-5" />
+                            <Wallet
+                              className="h-5 w-5"
+                              aria-hidden="true"
+                            />
                           </div>
                           <CardTitle className="text-lg font-bold">
                             {budget.categories?.name}
                           </CardTitle>
                         </div>
-                        <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label={
+                              lang === "vi" ? "Chỉnh sửa ngân sách" : "Edit budget"
+                            }
+                            title={lang === "vi" ? "Chỉnh sửa" : "Edit"}
                             className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
                             onClick={() => handleOpenEditDialog(budget)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label={
+                              lang === "vi" ? "Xóa ngân sách" : "Delete budget"
+                            }
+                            title={lang === "vi" ? "Xóa" : "Delete"}
                             className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
                             onClick={() => handleDeleteBudget(budget.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
                           </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-6">
                         <div className="space-y-5">
-                          <div className="flex justify-between items-end">
+                          <div className="flex items-end justify-between">
                             <div>
-                              <p className="text-xl sm:text-2xl font-black tracking-tight">
+                              <p className="text-xl font-black tracking-tight sm:text-2xl">
                                 {spent.toLocaleString(currencyFormat)}{" "}
                                 {currencySymbol}
                               </p>
-                              <p className="text-xs text-muted-foreground font-medium">
+                              <p className="text-xs font-medium text-muted-foreground">
                                 {lang === "vi" ? "mục tiêu" : "target"}:{" "}
                                 {budget.amount.toLocaleString(currencyFormat)}{" "}
                                 {currencySymbol}
@@ -560,13 +595,16 @@ export default function BudgetsPage() {
                               className={cn(
                                 "rounded-full px-3 py-1 font-bold",
                                 isWarning &&
-                                  "border-amber-500 text-amber-600 bg-amber-50",
+                                  "border-warning bg-warning-muted text-warning",
                               )}
                             >
                               {isOver ? (
                                 <div className="flex items-center gap-1">
-                                  <AlertCircle className="h-3 w-3" />-
-                                  {Math.round(percent - 100)}%
+                                  <AlertCircle
+                                    className="h-3 w-3"
+                                    aria-hidden="true"
+                                  />
+                                  -{Math.round(percent - 100)}%
                                 </div>
                               ) : (
                                 `${percent}%`
@@ -575,20 +613,20 @@ export default function BudgetsPage() {
                           </div>
 
                           <div className="space-y-2">
-                            <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
+                            <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                               <div
                                 className={cn(
                                   "h-full transition-all duration-700 ease-out",
                                   isOver
-                                    ? "bg-rose-500"
+                                    ? "bg-danger"
                                     : isWarning
-                                      ? "bg-amber-500"
+                                      ? "bg-warning"
                                       : "bg-primary",
                                 )}
                                 style={{ width: `${progressWidth}%` }}
                               />
                             </div>
-                            <div className="flex justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+                            <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
                               <span>
                                 {percent <= 100
                                   ? lang === "vi"
@@ -615,14 +653,14 @@ export default function BudgetsPage() {
                           </div>
                         </div>
                       </CardContent>
-                    </Card>
+                    </Panel>
                   );
                 })}
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="recurring" className="space-y-6 mt-0">
+          <TabsContent value="recurring" className="mt-0 space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold">
@@ -638,64 +676,81 @@ export default function BudgetsPage() {
               </div>
               <Button
                 onClick={handleOpenAddRecurring}
-                className="rounded-xl h-11 px-6 font-semibold"
+                className="h-11 rounded-lg px-6 font-semibold"
               >
-                <Plus className="mr-2 h-5 w-5" />
+                <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
                 {lang === "vi" ? "Thêm khoản cố định" : "Add recurring"}
               </Button>
             </div>
 
             {isLoading ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="grid gap-4">
+                <ListSkeleton rows={4} />
               </div>
             ) : recurringTransactions.length === 0 ? (
-              <Card className="border-dashed border-2 bg-muted/20 rounded-2xl py-20 flex flex-col items-center">
-                <CalendarClock className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  {lang === "vi"
+              <EmptyState
+                icon={CalendarClock}
+                title={
+                  lang === "vi"
                     ? "Chưa có khoản cố định nào"
-                    : "No recurring items yet"}
-                </p>
-              </Card>
+                    : "No recurring items yet"
+                }
+                description={
+                  lang === "vi"
+                    ? "Thêm các khoản thu chi định kỳ để Levi AI tự động ghi nhận giúp bạn."
+                    : "Add recurring income/expenses and let Levi AI record them for you."
+                }
+              />
             ) : (
               <div className="grid gap-4">
                 {recurringTransactions.map((item) => (
-                  <Card
+                  <Panel
                     key={item.id}
                     className={cn(
-                      "border-none shadow-sm rounded-xl overflow-hidden",
+                      "overflow-hidden",
                       !item.is_active && "opacity-60 grayscale-[0.5]",
                     )}
                   >
-                    <div className="flex items-center p-3 sm:p-4 gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
                       <div
-                        className="h-12 w-12 rounded-xl flex items-center justify-center text-white shrink-0"
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-white"
                         style={{
-                          backgroundColor: item.categories?.color || "#cbd5e1",
+                          backgroundColor: categoryColor(
+                            item.categories?.color,
+                            "var(--muted-foreground)",
+                          ),
                         }}
                       >
                         {item.type === "expense" ? (
-                          <ArrowDownRight className="h-6 w-6" />
+                          <ArrowDownRight
+                            className="h-6 w-6"
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <ArrowUpRight className="h-6 w-6" />
+                          <ArrowUpRight
+                            className="h-6 w-6"
+                            aria-hidden="true"
+                          />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-bold truncate">
+                          <h4 className="truncate font-bold">
                             {item.note || item.categories?.name}
                           </h4>
                           <Badge
                             variant="outline"
-                            className="text-[10px] h-4 px-1"
+                            className="h-4 px-1 text-[10px]"
                           >
                             {item.categories?.name}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                        <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <Repeat className="h-3 w-3" />
+                            <Repeat
+                              className="h-3 w-3"
+                              aria-hidden="true"
+                            />
                             {item.frequency === "monthly"
                               ? lang === "vi"
                                 ? "Hàng tháng"
@@ -711,7 +766,10 @@ export default function BudgetsPage() {
                                   : "Hàng ngày"}
                           </span>
                           <span className="flex items-center gap-1">
-                            <CalendarClock className="h-3 w-3" />
+                            <CalendarClock
+                              className="h-3 w-3"
+                              aria-hidden="true"
+                            />
                             {lang === "vi" ? "Kỳ tới: " : "Next: "}{" "}
                             {new Date(item.next_date).toLocaleDateString(
                               currencyFormat,
@@ -719,52 +777,92 @@ export default function BudgetsPage() {
                           </span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="shrink-0 text-right">
                         <p
                           className={cn(
                             "text-lg font-black",
-                            item.type === "income"
-                              ? "text-emerald-600"
-                              : "text-rose-600",
+                            amountTone(item.type),
                           )}
                         >
                           {item.type === "income" ? "+" : "-"}
                           {item.amount.toLocaleString(currencyFormat)}{" "}
                           {currencySymbol}
                         </p>
-                        <div className="flex items-center justify-end gap-1 mt-1">
+                        <div className="mt-1 flex items-center justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 sm:h-7 sm:w-7 rounded-lg active:scale-95 transition-all"
+                            aria-label={
+                              item.is_active
+                                ? lang === "vi"
+                                  ? "Tạm dừng khoản cố định"
+                                  : "Pause recurring item"
+                                : lang === "vi"
+                                  ? "Tiếp tục khoản cố định"
+                                  : "Resume recurring item"
+                            }
+                            title={
+                              item.is_active
+                                ? lang === "vi"
+                                  ? "Tạm dừng"
+                                  : "Pause"
+                                : lang === "vi"
+                                  ? "Tiếp tục"
+                                  : "Resume"
+                            }
+                            className="h-8 w-8 rounded-lg transition-all active:scale-95 sm:h-7 sm:w-7"
                             onClick={() => toggleRecurringActive(item)}
                           >
                             {item.is_active ? (
-                              <Pause className="h-3.5 w-3.5" />
+                              <Pause
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
                             ) : (
-                              <Play className="h-3.5 w-3.5" />
+                              <Play
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
                             )}
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 sm:h-7 sm:w-7 rounded-lg active:scale-95 transition-all"
+                            aria-label={
+                              lang === "vi"
+                                ? "Chỉnh sửa khoản cố định"
+                                : "Edit recurring item"
+                            }
+                            title={lang === "vi" ? "Chỉnh sửa" : "Edit"}
+                            className="h-8 w-8 rounded-lg transition-all active:scale-95 sm:h-7 sm:w-7"
                             onClick={() => handleOpenEditRecurring(item)}
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 sm:h-7 sm:w-7 rounded-lg text-muted-foreground hover:text-destructive active:scale-95 transition-all"
+                            aria-label={
+                              lang === "vi"
+                                ? "Xóa khoản cố định"
+                                : "Delete recurring item"
+                            }
+                            title={lang === "vi" ? "Xóa" : "Delete"}
+                            className="h-8 w-8 rounded-lg text-muted-foreground transition-all hover:text-destructive active:scale-95 sm:h-7 sm:w-7"
                             onClick={() => handleDeleteRecurring(item.id)}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
                           </Button>
                         </div>
                       </div>
                     </div>
-                  </Card>
+                  </Panel>
                 ))}
               </div>
             )}
@@ -773,7 +871,7 @@ export default function BudgetsPage() {
 
         {/* Budgets Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 {editingBudget
@@ -784,6 +882,11 @@ export default function BudgetsPage() {
                     ? "Thiết lập ngân sách mới"
                     : "Set up new budget"}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                {lang === "vi"
+                  ? "Chọn danh mục, hạn mức và chu kỳ cho ngân sách."
+                  : "Choose a category, limit and period for the budget."}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6 pt-4">
               <div className="space-y-4">
@@ -798,7 +901,10 @@ export default function BudgetsPage() {
                     }
                     disabled={!!editingBudget}
                   >
-                    <SelectTrigger className="w-full h-11 rounded-xl">
+                    <SelectTrigger
+                      id="category"
+                      className="h-11 w-full rounded-lg"
+                    >
                       <SelectValue
                         placeholder={
                           lang === "vi"
@@ -822,7 +928,7 @@ export default function BudgetsPage() {
                     </SelectContent>
                   </Select>
                   {editingBudget && (
-                    <p className="text-[10px] text-muted-foreground italic">
+                    <p className="text-[10px] italic text-muted-foreground">
                       {lang === "vi"
                         ? "* Không thể đổi danh mục khi đang sửa hạn mức."
                         : "* Cannot change category while editing budget limit."}
@@ -847,10 +953,13 @@ export default function BudgetsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, amount: e.target.value })
                       }
-                      className="h-11 rounded-xl pl-9"
+                      className="h-11 rounded-lg pl-9"
                       required
                     />
-                    <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Wallet
+                      className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
 
@@ -864,7 +973,10 @@ export default function BudgetsPage() {
                       setFormData({ ...formData, period: val })
                     }
                   >
-                    <SelectTrigger className="w-full h-11 rounded-xl">
+                    <SelectTrigger
+                      id="period"
+                      className="h-11 w-full rounded-lg"
+                    >
                       <SelectValue
                         placeholder={
                           lang === "vi" ? "Chọn chu kỳ..." : "Select period..."
@@ -891,18 +1003,22 @@ export default function BudgetsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
-                  className="rounded-xl h-11"
+                  className="h-11 rounded-lg"
                 >
                   {lang === "vi" ? "Hủy bỏ" : "Cancel"}
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitLoading}
-                  className="rounded-xl h-11 px-8 font-bold"
+                  aria-busy={isSubmitLoading}
+                  className="h-11 rounded-lg px-8 font-bold"
                 >
                   {isSubmitLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2
+                        className="mr-2 h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
                       {lang === "vi" ? "Đang lưu..." : "Saving..."}
                     </>
                   ) : editingBudget ? (
@@ -927,7 +1043,7 @@ export default function BudgetsPage() {
           open={isRecurringDialogOpen}
           onOpenChange={setIsRecurringDialogOpen}
         >
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 {editingRecurring
@@ -938,12 +1054,17 @@ export default function BudgetsPage() {
                     ? "Thêm khoản cố định"
                     : "Add recurring"}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                {lang === "vi"
+                  ? "Thiết lập khoản thu chi định kỳ và chu kỳ lặp lại."
+                  : "Set up a recurring income/expense and its frequency."}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleRecurringSubmit} className="space-y-6 pt-4">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold">
+                    <Label htmlFor="rec-type" className="text-sm font-bold">
                       {lang === "vi" ? "Loại" : "Type"}
                     </Label>
                     <Select
@@ -955,7 +1076,7 @@ export default function BudgetsPage() {
                         })
                       }
                     >
-                      <SelectTrigger className="rounded-xl h-11">
+                      <SelectTrigger id="rec-type" className="h-11 rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -969,7 +1090,7 @@ export default function BudgetsPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold">
+                    <Label htmlFor="rec-frequency" className="text-sm font-bold">
                       {lang === "vi" ? "Chu kỳ" : "Frequency"}
                     </Label>
                     <Select
@@ -983,7 +1104,10 @@ export default function BudgetsPage() {
                         })
                       }
                     >
-                      <SelectTrigger className="rounded-xl h-11">
+                      <SelectTrigger
+                        id="rec-frequency"
+                        className="h-11 rounded-lg"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1005,7 +1129,7 @@ export default function BudgetsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold">
+                  <Label htmlFor="rec-category" className="text-sm font-bold">
                     {lang === "vi" ? "Danh mục" : "Category"}
                   </Label>
                   <Select
@@ -1017,7 +1141,10 @@ export default function BudgetsPage() {
                       })
                     }
                   >
-                    <SelectTrigger className="rounded-xl h-11">
+                    <SelectTrigger
+                      id="rec-category"
+                      className="h-11 rounded-lg"
+                    >
                       <SelectValue
                         placeholder={
                           lang === "vi"
@@ -1039,11 +1166,12 @@ export default function BudgetsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold">
+                  <Label htmlFor="rec-amount" className="text-sm font-bold">
                     {lang === "vi" ? "Số tiền" : "Amount"}
                   </Label>
                   <div className="relative">
                     <Input
+                      id="rec-amount"
                       type="number"
                       value={recurringFormData.amount}
                       onChange={(e) =>
@@ -1052,20 +1180,24 @@ export default function BudgetsPage() {
                           amount: e.target.value,
                         })
                       }
-                      className="rounded-xl h-11 pl-9"
+                      className="h-11 rounded-lg pl-9"
                       required
                     />
-                    <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Wallet
+                      className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold">
+                  <Label htmlFor="rec-date" className="text-sm font-bold">
                     {lang === "vi"
                       ? "Ngày bắt đầu / Ngày kỳ tới"
                       : "Start / Next Date"}
                   </Label>
                   <Input
+                    id="rec-date"
                     type="date"
                     value={recurringFormData.nextDate}
                     onChange={(e) =>
@@ -1074,16 +1206,17 @@ export default function BudgetsPage() {
                         nextDate: e.target.value,
                       })
                     }
-                    className="rounded-xl h-11"
+                    className="h-11 rounded-lg"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold">
+                  <Label htmlFor="rec-note" className="text-sm font-bold">
                     {lang === "vi" ? "Ghi chú" : "Note"}
                   </Label>
                   <Input
+                    id="rec-note"
                     value={recurringFormData.note}
                     onChange={(e) =>
                       setRecurringFormData({
@@ -1094,7 +1227,7 @@ export default function BudgetsPage() {
                     placeholder={
                       lang === "vi" ? "Vd: Tiền nhà tháng" : "e.g. Monthly rent"
                     }
-                    className="rounded-xl h-11"
+                    className="h-11 rounded-lg"
                   />
                 </div>
               </div>
@@ -1103,17 +1236,21 @@ export default function BudgetsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsRecurringDialogOpen(false)}
-                  className="rounded-xl h-11"
+                  className="h-11 rounded-lg"
                 >
                   {lang === "vi" ? "Hủy" : "Cancel"}
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitLoading}
-                  className="rounded-xl h-11 px-8 font-bold"
+                  aria-busy={isSubmitLoading}
+                  className="h-11 rounded-lg px-8 font-bold"
                 >
                   {isSubmitLoading ? (
-                    <Loader2 className="animate-spin h-4 w-4" />
+                    <Loader2
+                      className="h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
                   ) : editingRecurring ? (
                     lang === "vi" ? (
                       "Cập nhật"
@@ -1130,7 +1267,7 @@ export default function BudgetsPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

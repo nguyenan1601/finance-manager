@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,9 +18,9 @@ import {
   Filter,
   Search,
   Download,
-  Loader2,
   Pencil,
   Trash2,
+  Receipt,
 } from "lucide-react";
 import {
   AddTransactionDialog,
@@ -40,6 +40,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BillScanner } from "@/components/dashboard/bill-scanner";
+import { PageHeader } from "@/components/common/page-header";
+import { PageShell } from "@/components/common/page-shell";
+import { Panel } from "@/components/common/panel";
+import { EmptyState } from "@/components/common/empty-state";
+import { ListSkeleton, TableSkeleton } from "@/components/common/skeletons";
+import { amountTone } from "@/lib/ui";
 
 interface Transaction {
   id: string;
@@ -214,57 +220,56 @@ export default function TransactionsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                {t("common.transactions")}
-              </h1>
+      <PageShell>
+        <PageHeader
+          title={t("common.transactions")}
+          description={
+            lang === "vi"
+              ? "Theo dõi và quản lý toàn bộ các khoản thu chi của bạn."
+              : "Track and manage all your income and expenses."
+          }
+          actions={
+            <>
               <div className="flex items-center gap-2 sm:hidden">
                 <BillScanner onSuccess={fetchTransactions} />
                 <Button
                   size="sm"
-                  className="rounded-lg shadow-lg shadow-primary/20 h-9"
+                  aria-label={t("common.new")}
+                  className="h-9 rounded-lg shadow-lg shadow-primary/20"
                   onClick={() => {
                     setEditingTransaction(null);
                     setIsDialogOpen(true);
                   }}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
-            </div>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {lang === "vi"
-                ? "Theo dõi và quản lý toàn bộ các khoản thu chi của bạn."
-                : "Track and manage all your income and expenses."}
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2">
-            <BillScanner onSuccess={fetchTransactions} />
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden sm:flex rounded-lg"
-              onClick={handleExport}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {t("common.export")}
-            </Button>
-            <Button
-              size="sm"
-              className="rounded-lg shadow-lg shadow-primary/20"
-              onClick={() => {
-                setEditingTransaction(null);
-                setIsDialogOpen(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {t("common.new")}
-            </Button>
-          </div>
-        </div>
+              <div className="hidden items-center gap-2 sm:flex">
+                <BillScanner onSuccess={fetchTransactions} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg"
+                  onClick={handleExport}
+                >
+                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t("common.export")}
+                </Button>
+                <Button
+                  size="sm"
+                  className="rounded-lg shadow-lg shadow-primary/20"
+                  onClick={() => {
+                    setEditingTransaction(null);
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t("common.new")}
+                </Button>
+              </div>
+            </>
+          }
+        />
 
         <AddTransactionDialog
           open={isDialogOpen}
@@ -273,14 +278,18 @@ export default function TransactionsPage() {
           editData={editingTransaction}
         />
 
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-3 border-b bg-muted/5">
+        <Panel>
+          <CardHeader className="border-b bg-muted/5 pb-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative w-full max-w-sm">
+                <Search
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
+                  aria-label={t("common.searchPlaceholder")}
                   placeholder={t("common.searchPlaceholder")}
-                  className="pl-10 rounded-xl bg-background border-muted"
+                  className="rounded-lg border-muted bg-background pl-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -297,7 +306,7 @@ export default function TransactionsPage() {
                       size="sm"
                       className="text-xs font-semibold uppercase tracking-wider"
                     >
-                      <Filter className="mr-2 h-3.5 w-3.5" />
+                      <Filter className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
                       {t("common.filter")}
                       {(filterType !== "all" || filterCategory !== "all") && (
                         <Badge
@@ -382,206 +391,228 @@ export default function TransactionsPage() {
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  {t("common.loading")}
-                </p>
-              </div>
+              <>
+                <div className="p-4 md:hidden">
+                  <ListSkeleton rows={6} />
+                </div>
+                <div className="hidden p-4 md:block">
+                  <TableSkeleton rows={6} cols={6} />
+                </div>
+              </>
+            ) : filteredTransactions.length === 0 ? (
+              <EmptyState
+                icon={Receipt}
+                title={t("common.noTransactions")}
+                description={
+                  lang === "vi"
+                    ? "Hãy thêm giao dịch mới hoặc điều chỉnh bộ lọc để xem dữ liệu."
+                    : "Add a new transaction or adjust the filters to see data."
+                }
+                className="m-4"
+              />
             ) : (
               <>
                 {/* Mobile/Tablet List View */}
-                <div className="md:hidden divide-y divide-border">
-                  {filteredTransactions.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground bg-muted/5">
-                      {t("common.noTransactions")}
-                    </div>
-                  ) : (
-                    filteredTransactions.map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        className="p-4 flex flex-col gap-2 hover:bg-muted/10 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-1">
-                            <p className="font-bold text-sm leading-tight line-clamp-2">
-                              {transaction.note ||
-                                transaction.name ||
-                                (lang === "vi"
-                                  ? "Không có ghi chú"
-                                  : "No note")}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-muted-foreground uppercase font-medium">
-                                {new Date(transaction.date).toLocaleDateString(
-                                  currencyFormat,
-                                )}
-                              </span>
-                              <Badge
-                                variant="secondary"
-                                className="h-4 px-1.5 text-[10px] bg-muted/50 font-normal border-none"
-                              >
-                                {transaction.categories?.name ||
-                                  (lang === "vi" ? "Khác" : "Other")}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="text-right">
-                            <p
-                              className={cn(
-                                "font-bold text-sm",
-                                transaction.type === "income"
-                                  ? "text-emerald-600"
-                                  : "text-rose-600",
-                              )}
-                            >
-                              {transaction.type === "income" ? "+" : "-"}
-                              {Number(transaction.amount).toLocaleString(
+                <div className="divide-y divide-border md:hidden">
+                  {filteredTransactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="flex flex-col gap-2 p-4 transition-colors hover:bg-muted/10"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold leading-tight line-clamp-2">
+                            {transaction.note ||
+                              transaction.name ||
+                              (lang === "vi"
+                                ? "Không có ghi chú"
+                                : "No note")}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                              {new Date(transaction.date).toLocaleDateString(
                                 currencyFormat,
-                              )}{" "}
-                              {currencySymbol}
-                            </p>
+                              )}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="h-4 border-none bg-muted/50 px-1.5 text-[10px] font-normal"
+                            >
+                              {transaction.categories?.name ||
+                                (lang === "vi" ? "Khác" : "Other")}
+                            </Badge>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-1 mt-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 px-3 text-muted-foreground hover:text-primary active:scale-95 transition-all"
-                            onClick={() => handleEdit(transaction)}
+                        <div className="text-right">
+                          <p
+                            className={cn(
+                              "text-sm font-bold",
+                              amountTone(transaction.type),
+                            )}
                           >
-                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                            <span className="text-xs">{t("common.edit")}</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 px-3 text-muted-foreground hover:text-destructive active:scale-95 transition-all"
-                            onClick={() => handleDelete(transaction.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                            <span className="text-xs">
-                              {t("common.delete")}
+                            <span className="sr-only">
+                              {transaction.type === "income"
+                                ? t("common.income")
+                                : t("common.expense")}
+                              :{" "}
                             </span>
-                          </Button>
+                            {transaction.type === "income" ? "+" : "-"}
+                            {Number(transaction.amount).toLocaleString(
+                              currencyFormat,
+                            )}{" "}
+                            {currencySymbol}
+                          </p>
                         </div>
                       </div>
-                    ))
-                  )}
+
+                      <div className="mt-1 flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 px-3 text-muted-foreground transition-all hover:text-primary active:scale-95"
+                          onClick={() => handleEdit(transaction)}
+                        >
+                          <Pencil
+                            className="mr-1.5 h-3.5 w-3.5"
+                            aria-hidden="true"
+                          />
+                          <span className="text-xs">{t("common.edit")}</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 px-3 text-muted-foreground transition-all hover:text-destructive active:scale-95"
+                          onClick={() => handleDelete(transaction.id)}
+                        >
+                          <Trash2
+                            className="mr-1.5 h-3.5 w-3.5"
+                            aria-hidden="true"
+                          />
+                          <span className="text-xs">{t("common.delete")}</span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className="hidden overflow-x-auto md:block">
                   <Table>
                     <TableHeader className="bg-muted/30">
                       <TableRow>
-                        <TableHead className="font-bold py-4 min-w-[100px]">
+                        <TableHead className="min-w-[100px] py-4 font-bold">
                           {t("common.date")}
                         </TableHead>
-                        <TableHead className="font-bold min-w-[200px]">
+                        <TableHead className="min-w-[200px] font-bold">
                           {t("common.description")}
                         </TableHead>
                         <TableHead className="font-bold">
                           {t("common.category")}
                         </TableHead>
-                        <TableHead className="font-bold text-right">
+                        <TableHead className="text-right font-bold">
                           {t("common.amount")}
                         </TableHead>
-                        <TableHead className="font-bold text-center">
+                        <TableHead className="text-center font-bold">
                           {t("common.status")}
                         </TableHead>
-                        <TableHead className="font-bold text-center w-[120px]">
+                        <TableHead className="w-[120px] text-center font-bold">
                           {lang === "vi" ? "Thao tác" : "Actions"}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredTransactions.length === 0 ? (
-                        <TableRow>
+                      {filteredTransactions.map((transaction) => (
+                        <TableRow
+                          key={transaction.id}
+                          className="transition-colors hover:bg-muted/20"
+                        >
+                          <TableCell className="font-medium text-muted-foreground">
+                            {new Date(transaction.date).toLocaleDateString(
+                              currencyFormat,
+                            )}
+                          </TableCell>
+                          <TableCell className="font-bold">
+                            {transaction.note ||
+                              transaction.name ||
+                              (lang === "vi"
+                                ? "Không có ghi chú"
+                                : "No note")}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className="border-none bg-muted/50 font-medium"
+                            >
+                              {transaction.categories?.name ||
+                                (lang === "vi" ? "Khác" : "Other")}
+                            </Badge>
+                          </TableCell>
                           <TableCell
-                            colSpan={6}
-                            className="text-center py-10 text-muted-foreground"
+                            className={cn(
+                              "text-right text-base font-bold",
+                              amountTone(transaction.type),
+                            )}
                           >
-                            {t("common.noTransactions")}
+                            <span className="sr-only">
+                              {transaction.type === "income"
+                                ? t("common.income")
+                                : t("common.expense")}
+                              :{" "}
+                            </span>
+                            {transaction.type === "income" ? "+" : "-"}
+                            {Number(transaction.amount).toLocaleString(
+                              currencyFormat,
+                            )}{" "}
+                            {currencySymbol}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <div
+                                className="h-2 w-2 rounded-full bg-success ring-2 ring-success/20"
+                                aria-hidden="true"
+                              />
+                              <span className="sr-only">
+                                {lang === "vi" ? "Hoàn thành" : "Completed"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={lang === "vi" ? "Chỉnh sửa" : "Edit"}
+                                title={lang === "vi" ? "Chỉnh sửa" : "Edit"}
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => handleEdit(transaction)}
+                              >
+                                <Pencil
+                                  className="h-4 w-4"
+                                  aria-hidden="true"
+                                />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={lang === "vi" ? "Xóa" : "Delete"}
+                                title={lang === "vi" ? "Xóa" : "Delete"}
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleDelete(transaction.id)}
+                              >
+                                <Trash2
+                                  className="h-4 w-4"
+                                  aria-hidden="true"
+                                />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        filteredTransactions.map((transaction) => (
-                          <TableRow
-                            key={transaction.id}
-                            className="hover:bg-muted/20 transition-colors"
-                          >
-                            <TableCell className="text-muted-foreground font-medium">
-                              {new Date(transaction.date).toLocaleDateString(
-                                currencyFormat,
-                              )}
-                            </TableCell>
-                            <TableCell className="font-bold">
-                              {transaction.note ||
-                                transaction.name ||
-                                (lang === "vi"
-                                  ? "Không có ghi chú"
-                                  : "No note")}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="secondary"
-                                className="font-medium bg-muted/50 border-none"
-                              >
-                                {transaction.categories?.name ||
-                                  (lang === "vi" ? "Khác" : "Other")}
-                              </Badge>
-                            </TableCell>
-                            <TableCell
-                              className={cn(
-                                "text-right font-bold text-base",
-                                transaction.type === "income"
-                                  ? "text-emerald-600"
-                                  : "text-rose-600",
-                              )}
-                            >
-                              {transaction.type === "income" ? "+" : "-"}
-                              {Number(transaction.amount).toLocaleString(
-                                currencyFormat,
-                              )}{" "}
-                              {currencySymbol}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center">
-                                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                  onClick={() => handleEdit(transaction)}
-                                  title={lang === "vi" ? "Chỉnh sửa" : "Edit"}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                  onClick={() => handleDelete(transaction.id)}
-                                  title={lang === "vi" ? "Xóa" : "Delete"}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
-                <div className="p-4 border-t text-center">
+                <div className="border-t p-4 text-center">
                   <p className="text-xs text-muted-foreground">
                     {lang === "vi"
                       ? `Hiển thị ${filteredTransactions.length} giao dịch`
@@ -591,8 +622,8 @@ export default function TransactionsPage() {
               </>
             )}
           </CardContent>
-        </Card>
-      </div>
+        </Panel>
+      </PageShell>
     </DashboardLayout>
   );
 }

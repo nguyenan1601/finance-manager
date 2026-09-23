@@ -1,5 +1,7 @@
 import { LucideIcon, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { amountTone, amountToneBg } from "@/lib/ui";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface TransactionItemProps {
   name: string;
@@ -20,6 +22,7 @@ export function TransactionItem({
   icon: Icon,
   className,
 }: TransactionItemProps) {
+  const { t } = useTranslation();
   const isIncome = type === "income";
 
   return (
@@ -32,18 +35,16 @@ export function TransactionItem({
       <div className="flex items-center gap-3 sm:gap-4 min-w-0 overflow-hidden">
         <div
           className={cn(
-            "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
-            isIncome
-              ? "bg-emerald-100 text-emerald-600"
-              : "bg-rose-100 text-rose-600",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+            amountToneBg(type),
           )}
         >
           {Icon ? (
-            <Icon className="h-5 w-5" />
+            <Icon className="h-5 w-5" aria-hidden="true" />
           ) : isIncome ? (
-            <ArrowUpRight className="h-5 w-5" />
+            <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
           ) : (
-            <ArrowDownRight className="h-5 w-5" />
+            <ArrowDownRight className="h-5 w-5" aria-hidden="true" />
           )}
         </div>
         <div className="min-w-0">
@@ -54,12 +55,10 @@ export function TransactionItem({
         </div>
       </div>
       <div className="text-right ml-4 shrink-0">
-        <p
-          className={cn(
-            "text-sm font-bold",
-            isIncome ? "text-emerald-600" : "text-rose-600",
-          )}
-        >
+        <p className={cn("text-sm font-bold", amountTone(type))}>
+          <span className="sr-only">
+            {isIncome ? t("common.income") : t("common.expense")}:{" "}
+          </span>
           {amount}
         </p>
       </div>

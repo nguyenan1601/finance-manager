@@ -38,13 +38,13 @@ export function StatCard({
         </CardTitle>
         <div
           className={cn(
-            "h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center",
+            "flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8",
             variant === "bright"
               ? "bg-primary/20 text-primary"
               : "bg-muted text-muted-foreground",
           )}
         >
-          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
         </div>
       </CardHeader>
       <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
@@ -58,8 +58,8 @@ export function StatCard({
                 className={cn(
                   "text-xs font-medium mr-2 px-1.5 py-0.5 rounded-full flex items-center",
                   trend.isUp
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-rose-100 text-rose-700",
+                    ? "bg-success-muted text-success"
+                    : "bg-danger-muted text-danger",
                 )}
               >
                 {trend.isUp ? "+" : "-"}

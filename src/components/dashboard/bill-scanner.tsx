@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -23,7 +24,7 @@ interface BillScannerProps {
 }
 
 export function BillScanner({ onSuccess }: BillScannerProps) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [isScanning, setIsScanning] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -134,6 +135,7 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
           type="file"
           accept="image/*"
           className="hidden"
+          aria-hidden="true"
           ref={fileInputRef}
           onChange={handleFileChange}
         />
@@ -145,9 +147,9 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
           disabled={isScanning}
         >
           {isScanning ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
           ) : (
-            <Receipt className="mr-2 h-4 w-4" />
+            <Receipt className="mr-2 h-4 w-4" aria-hidden="true" />
           )}
           {isScanning ? t("common.scanning") : t("common.scanBill")}
         </Button>
@@ -158,12 +160,17 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("common.uploadBill")}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {lang === "vi"
+                ? "Xem trước ảnh hóa đơn trước khi quét."
+                : "Preview the bill image before scanning."}
+            </DialogDescription>
           </DialogHeader>
           {selectedImage && (
             <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border">
               <Image
                 src={selectedImage}
-                alt="Selected Bill"
+                alt={t("common.uploadBill")}
                 fill
                 className="object-contain"
               />
@@ -173,11 +180,11 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
             <Button
               variant="outline"
               onClick={() => setIsPreviewOpen(false)}
-              className="rounded-xl"
+              className="rounded-lg"
             >
               {t("common.cancel")}
             </Button>
-            <Button onClick={startScan} className="rounded-xl">
+            <Button onClick={startScan} className="rounded-lg">
               {t("common.scanBill")}
             </Button>
           </DialogFooter>
@@ -188,14 +195,22 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Xác nhận giao dịch</DialogTitle>
+            <DialogTitle>
+              {lang === "vi" ? "Xác nhận giao dịch" : "Confirm transaction"}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              {lang === "vi"
+                ? "Kiểm tra và chỉnh sửa thông tin trích xuất từ hóa đơn."
+                : "Review and edit the information extracted from the bill."}
+            </DialogDescription>
           </DialogHeader>
           {scanResult && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>{t("common.amount")}</Label>
+                <Label htmlFor="bill-amount">{t("common.amount")}</Label>
                 <div className="relative">
                   <Input
+                    id="bill-amount"
                     type="number"
                     value={scanResult.amount}
                     onChange={(e) =>
@@ -204,9 +219,12 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
                         amount: Number(e.target.value),
                       })
                     }
-                    className="h-11 rounded-xl text-lg font-bold pr-10"
+                    className="h-11 rounded-lg text-lg font-bold pr-10"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">
+                  <span
+                    className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     ₫
                   </span>
                 </div>
@@ -214,36 +232,39 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{t("common.category")}</Label>
+                  <Label htmlFor="bill-category">{t("common.category")}</Label>
                   <Input
+                    id="bill-category"
                     value={scanResult.category}
                     onChange={(e) =>
                       setScanResult({ ...scanResult, category: e.target.value })
                     }
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-lg"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("common.date")}</Label>
+                  <Label htmlFor="bill-date">{t("common.date")}</Label>
                   <Input
+                    id="bill-date"
                     type="date"
                     value={scanResult.date}
                     onChange={(e) =>
                       setScanResult({ ...scanResult, date: e.target.value })
                     }
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-lg"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>{t("common.note")}</Label>
+                <Label htmlFor="bill-note">{t("common.note")}</Label>
                 <Input
+                  id="bill-note"
                   value={scanResult.note}
                   onChange={(e) =>
                     setScanResult({ ...scanResult, note: e.target.value })
                   }
-                  className="h-11 rounded-xl"
+                  className="h-11 rounded-lg"
                 />
               </div>
             </div>
@@ -252,13 +273,13 @@ export function BillScanner({ onSuccess }: BillScannerProps) {
             <Button
               variant="outline"
               onClick={() => setIsConfirmOpen(false)}
-              className="rounded-xl"
+              className="rounded-lg"
             >
-              <X className="mr-2 h-4 w-4" />
+              <X className="mr-2 h-4 w-4" aria-hidden="true" />
               {t("common.cancel")}
             </Button>
-            <Button onClick={handleSave} className="rounded-xl">
-              <Check className="mr-2 h-4 w-4" />
+            <Button onClick={handleSave} className="rounded-lg">
+              <Check className="mr-2 h-4 w-4" aria-hidden="true" />
               {t("common.save")}
             </Button>
           </DialogFooter>

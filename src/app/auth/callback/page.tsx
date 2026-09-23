@@ -79,7 +79,9 @@ export default function AuthCallbackPage() {
   if (error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-        <p className="text-sm text-destructive font-medium">{error}</p>
+        <p role="alert" className="text-sm font-medium text-destructive">
+          {error}
+        </p>
         <button
           onClick={() => router.replace("/login")}
           className="text-sm text-primary hover:underline"
@@ -91,8 +93,12 @@ export default function AuthCallbackPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div
+      role="status"
+      aria-busy="true"
+      className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background"
+    >
+      <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
       <p className="text-sm text-muted-foreground">
         Đang xác thực, vui lòng chờ...
       </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,8 +82,8 @@ export default function UpdatePasswordPage() {
       <Card className="w-full max-w-md border-none shadow-xl">
         <CardHeader className="space-y-1 text-center font-sans">
           <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-              <TrendingUp className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+              <TrendingUp className="h-6 w-6" aria-hidden="true" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -95,9 +95,12 @@ export default function UpdatePasswordPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {isSuccess ? (
-            <div className="flex flex-col items-center justify-center space-y-4 py-4">
-              <div className="rounded-full bg-green-100 p-3 text-green-600 dark:bg-green-900/30 dark:text-green-500">
-                <CheckCircle2 className="h-8 w-8" />
+            <div
+              role="status"
+              className="flex flex-col items-center justify-center space-y-4 py-4"
+            >
+              <div className="rounded-full bg-success-muted p-3 text-success">
+                <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
               </div>
               <p className="text-center font-medium">
                 Cập nhật mật khẩu thành công!
@@ -110,10 +113,14 @@ export default function UpdatePasswordPage() {
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div className="space-y-4">
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Lock
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <Input
                     id="password"
                     type="password"
+                    aria-label="Mật khẩu mới"
                     placeholder="Mật khẩu mới"
                     required
                     value={formData.password}
@@ -124,10 +131,14 @@ export default function UpdatePasswordPage() {
                   />
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Lock
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <Input
                     id="confirmPassword"
                     type="password"
+                    aria-label="Xác nhận mật khẩu mới"
                     placeholder="Xác nhận mật khẩu mới"
                     required
                     value={formData.confirmPassword}
@@ -143,21 +154,27 @@ export default function UpdatePasswordPage() {
               </div>
 
               {error && (
-                <p className="text-sm text-destructive font-medium">{error}</p>
+                <p role="alert" className="text-sm font-medium text-destructive">
+                  {error}
+                </p>
               )}
 
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 font-semibold group rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                aria-busy={isLoading}
+                className="w-full h-11 font-semibold group rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
                 size="lg"
               >
                 {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 ) : (
                   <>
                     Lưu mật khẩu mới
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight
+                      className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
                   </>
                 )}
               </Button>

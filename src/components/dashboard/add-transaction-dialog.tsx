@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -187,6 +188,11 @@ export function AddTransactionDialog({
           <DialogTitle>
             {isEditMode ? "Chỉnh sửa giao dịch" : "Thêm giao dịch mới"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {lang === "vi"
+              ? "Nhập thông tin giao dịch rồi lưu lại."
+              : "Enter the transaction details and save."}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
@@ -211,14 +217,14 @@ export function AddTransactionDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Loại</Label>
+              <Label htmlFor="tx-type">Loại</Label>
               <Select
                 value={formData.type}
                 onValueChange={(v: "income" | "expense") =>
                   setFormData({ ...formData, type: v })
                 }
               >
-                <SelectTrigger className="h-11 rounded-lg">
+                <SelectTrigger id="tx-type" className="h-11 rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -228,8 +234,9 @@ export function AddTransactionDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Ngày</Label>
+              <Label htmlFor="tx-date">Ngày</Label>
               <Input
+                id="tx-date"
                 type="date"
                 value={formData.date}
                 onChange={(e) =>
@@ -241,7 +248,7 @@ export function AddTransactionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Danh mục</Label>
+            <Label htmlFor="tx-category">Danh mục</Label>
             <Select
               value={formData.category_id}
               onValueChange={(v) =>
@@ -249,7 +256,7 @@ export function AddTransactionDialog({
               }
               disabled={isFetchingCategories}
             >
-              <SelectTrigger className="h-11 rounded-lg">
+              <SelectTrigger id="tx-category" className="h-11 rounded-lg">
                 <SelectValue
                   placeholder={
                     isFetchingCategories ? "Đang tải..." : "Chọn danh mục"
@@ -291,10 +298,11 @@ export function AddTransactionDialog({
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 rounded-xl shadow-lg shadow-primary/20"
+              aria-busy={isLoading}
+              className="w-full h-11 rounded-lg shadow-lg shadow-primary/20"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
               ) : isEditMode ? (
                 "Cập nhật giao dịch"
               ) : (

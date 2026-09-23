@@ -99,11 +99,14 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
   return (
     <div className="flex h-full flex-col px-3 py-4">
       <div className="mb-10 flex items-center px-4">
-        <TrendingUp className="mr-2 h-8 w-8 text-primary" />
+        <TrendingUp
+          className="mr-2 h-8 w-8 text-primary"
+          aria-hidden="true"
+        />
         <span className="text-xl font-bold tracking-tight">Levi Finance</span>
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -111,8 +114,9 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
               key={item.href}
               href={item.href}
               onClick={onClose}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                "flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-md"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -123,6 +127,7 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
                   "mr-3 h-5 w-5",
                   isActive ? "" : "text-muted-foreground",
                 )}
+                aria-hidden="true"
               />
               {item.name}
             </NextLink>
@@ -137,7 +142,7 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
               <div className="relative h-full w-full">
                 <Image
                   src={avatarUrl}
-                  alt="Avatar"
+                  alt=""
                   fill
                   className="object-cover"
                   unoptimized
@@ -159,12 +164,12 @@ export function SidebarContent({ onClose }: SidebarContentProps) {
 
         <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
           <DialogTrigger asChild>
-            <button className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
-              <LogOut className="mr-3 h-5 w-5" />
+            <button className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-medium text-destructive transition-colors outline-none hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar">
+              <LogOut className="mr-3 h-5 w-5" aria-hidden="true" />
               {t("common.logout")}
             </button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{t("common.logoutConfirmTitle")}</DialogTitle>
               <DialogDescription>

@@ -2,10 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { TransactionItem } from "@/components/dashboard/transaction-item";
 import { SmartInput } from "@/components/dashboard/smart-input";
+import { PageHeader } from "@/components/common/page-header";
+import { PageShell } from "@/components/common/page-shell";
+import { Panel } from "@/components/common/panel";
+import { EmptyState } from "@/components/common/empty-state";
+import { ChartSkeleton, StatCardSkeleton } from "@/components/common/skeletons";
 import { db, Transaction } from "@/lib/db";
 import {
   ArrowUpRight,
@@ -19,7 +24,6 @@ import {
   Home as HomeIcon,
   Smartphone,
   Utensils,
-  Loader2,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -34,6 +38,13 @@ import {
 import { format, subMonths } from "date-fns";
 import { useTranslation } from "@/hooks/use-translation";
 import { enUS, vi as viLocale } from "date-fns/locale";
+import {
+  CHART_CURSOR,
+  CHART_EXPENSE,
+  CHART_GRID,
+  chartAxisTick,
+  chartTooltipProps,
+} from "@/lib/chart-theme";
 
 // Mapping icons for different categories
 const iconMap: Record<string, LucideIcon> = {
@@ -144,185 +155,204 @@ export default function Home() {
   const currencyFormat = lang === "vi" ? "vi-VN" : "en-US";
   const currencySymbol = lang === "vi" ? "₫" : "$";
 
+  const hasChartData = chartData.some((m) => m.expense > 0);
+
   return (
     <DashboardLayout>
-      {/* AI Smart Input - Quick Access */}
-      <div className="mb-6 sm:mb-10 max-w-2xl mx-auto px-1 sm:px-0">
-        <h2 className="text-center mb-3 sm:mb-4 text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-          {t("home.quickAiInput")}
-        </h2>
-        <div className="flex flex-col gap-3">
-          <SmartInput onAdd={fetchDashboardData} />
-        </div>
-      </div>
-
-      {/* Thống kê Tổng quan */}
-      <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title={t("home.totalBalance")}
-          value={`${stats.totalBalance.toLocaleString(currencyFormat)} ${currencySymbol}`}
-          icon={Wallet}
-          variant="bright"
-          description={lang === "vi" ? "tất cả tài khoản" : "all accounts"}
-        />
-
-        <StatCard
-          title={t("home.monthlyIncome")}
-          value={`${stats.monthlyIncome.toLocaleString(currencyFormat)} ${currencySymbol}`}
-          icon={ArrowUpRight}
-          description={lang === "vi" ? "Tháng hiện tại" : "Current month"}
-        />
-
-        <StatCard
-          title={t("home.monthlyExpense")}
-          value={`${stats.monthlyExpense.toLocaleString(currencyFormat)} ${currencySymbol}`}
-          icon={ArrowDownRight}
+      <PageShell>
+        <PageHeader
+          title={t("common.dashboard")}
           description={
             lang === "vi"
-              ? `${stats.transactionCount} giao dịch`
-              : `${stats.transactionCount} transactions`
+              ? "Tổng quan tài chính và hoạt động gần đây của bạn."
+              : "Your financial overview and recent activity."
           }
         />
-      </div>
 
-      <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-7">
-        {/* Biểu đồ xu hướng */}
-        <Card className="lg:col-span-4 border-none shadow-sm">
-          <CardHeader className="px-4 sm:px-6 pb-2 sm:pb-4">
-            <CardTitle className="text-base sm:text-lg">
-              {t("home.spendingTrend")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-[250px] sm:h-[350px] px-2 sm:p-6">
-            {isLoading ? (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm">
-                  {lang === "vi"
-                    ? "Đang quét dữ liệu chi tiêu..."
-                    : "Scanning spending data..."}
-                </p>
-              </div>
-            ) : chartData.length > 0 ? (
-              <ReResponsiveContainer width="100%" height="100%">
-                <ReBarChart data={chartData}>
-                  <ReCartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#f0f0f0"
-                  />
-                  <ReXAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#888888", fontSize: 12 }}
-                    dy={10}
-                  />
-                  <ReYAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#888888", fontSize: 12 }}
-                    tickFormatter={(value) => {
-                      if (value >= 1000000)
-                        return `${(value / 1000000).toFixed(0)}tr`;
-                      if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
-                      return value.toString();
-                    }}
-                  />
-                  <ReTooltip
-                    cursor={{ fill: "#f8fafc" }}
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                    }}
-                    formatter={(value: number | string | undefined) => [
-                      `${Number(value || 0).toLocaleString(currencyFormat)} ${currencySymbol}`,
-                    ]}
-                  />
-                  <ReBar
-                    dataKey="expense"
-                    name={lang === "vi" ? "Chi tiêu" : "Expense"}
-                    fill="#6366f1"
-                    radius={[6, 6, 0, 0]}
-                    barSize={40}
-                    activeBar={{
-                      fill: "#818cf8",
-                      stroke: "#6366f1",
-                      strokeWidth: 1,
-                    }}
-                  />
-                </ReBarChart>
-              </ReResponsiveContainer>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground border-t bg-muted/10 rounded-b-xl border-dashed">
-                <div className="text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
-                    <TrendingUp className="h-6 w-6 text-primary" />
-                  </div>
-                  <p className="text-sm">
-                    {lang === "vi"
-                      ? "Chưa có đủ dữ liệu để hiển thị biểu đồ."
-                      : "Not enough data to display the chart."}
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* AI Smart Input - Quick Access */}
+        <div className="mx-auto w-full max-w-2xl">
+          <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground sm:mb-4 sm:text-sm">
+            {t("home.quickAiInput")}
+          </h2>
+          <SmartInput onAdd={fetchDashboardData} />
+        </div>
 
-        {/* Giao dịch gần nhất */}
-        <Card className="lg:col-span-3 border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6">
-            <CardTitle className="text-base sm:text-lg text-primary flex items-center">
-              <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              {t("home.recentTransactions")}
-            </CardTitle>
-            <button
-              onClick={() => (window.location.href = "/transactions")}
-              className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              {t("common.viewAll")}
-            </button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
+        {/* Thống kê Tổng quan */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          {isLoading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <StatCard
+                title={t("home.totalBalance")}
+                value={`${stats.totalBalance.toLocaleString(currencyFormat)} ${currencySymbol}`}
+                icon={Wallet}
+                variant="bright"
+                description={lang === "vi" ? "tất cả tài khoản" : "all accounts"}
+              />
+
+              <StatCard
+                title={t("home.monthlyIncome")}
+                value={`${stats.monthlyIncome.toLocaleString(currencyFormat)} ${currencySymbol}`}
+                icon={ArrowUpRight}
+                description={lang === "vi" ? "Tháng hiện tại" : "Current month"}
+              />
+
+              <StatCard
+                title={t("home.monthlyExpense")}
+                value={`${stats.monthlyExpense.toLocaleString(currencyFormat)} ${currencySymbol}`}
+                icon={ArrowDownRight}
+                description={
+                  lang === "vi"
+                    ? `${stats.transactionCount} giao dịch`
+                    : `${stats.transactionCount} transactions`
+                }
+              />
+            </>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-7">
+          {/* Biểu đồ xu hướng */}
+          <Panel className="lg:col-span-4">
+            <CardHeader className="px-4 pb-2 sm:px-6 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">
+                {t("home.spendingTrend")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[250px] px-2 sm:h-[350px] sm:p-6">
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : recentTransactions.length === 0 ? (
-                <p className="text-center py-10 text-sm text-muted-foreground">
-                  {lang === "vi"
-                    ? "Chưa có giao dịch nào."
-                    : "No transactions yet."}
-                </p>
+                <ChartSkeleton className="h-full px-4" />
+              ) : hasChartData ? (
+                <ReResponsiveContainer width="100%" height="100%">
+                  <ReBarChart data={chartData}>
+                    <ReCartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke={CHART_GRID}
+                    />
+                    <ReXAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={chartAxisTick}
+                      dy={10}
+                    />
+                    <ReYAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={chartAxisTick}
+                      tickFormatter={(value) => {
+                        if (value >= 1000000)
+                          return `${(value / 1000000).toFixed(0)}tr`;
+                        if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+                        return value.toString();
+                      }}
+                    />
+                    <ReTooltip
+                      cursor={{ fill: CHART_CURSOR }}
+                      {...chartTooltipProps}
+                      formatter={(value: number | string | undefined) => [
+                        `${Number(value || 0).toLocaleString(currencyFormat)} ${currencySymbol}`,
+                      ]}
+                    />
+                    <ReBar
+                      dataKey="expense"
+                      name={lang === "vi" ? "Chi tiêu" : "Expense"}
+                      fill={CHART_EXPENSE}
+                      radius={[6, 6, 0, 0]}
+                      barSize={40}
+                      activeBar={{ fill: CHART_EXPENSE, opacity: 0.85 }}
+                    />
+                  </ReBarChart>
+                </ReResponsiveContainer>
               ) : (
-                recentTransactions.map((t) => (
-                  <TransactionItem
-                    key={t.id}
-                    name={
-                      t.note ||
-                      t.categories?.name ||
-                      (lang === "vi" ? "Giao dịch" : "Transaction")
-                    }
-                    category={
-                      t.categories?.name || (lang === "vi" ? "Khác" : "Other")
-                    }
-                    amount={`${Number(t.amount).toLocaleString(currencyFormat)} ${currencySymbol}`}
-                    type={t.type}
-                    date={new Date(t.date).toLocaleDateString(currencyFormat)}
-                    icon={
-                      (t.categories?.name && iconMap[t.categories.name]) ||
-                      Wallet
-                    }
-                  />
-                ))
+                <EmptyState
+                  icon={TrendingUp}
+                  title={
+                    lang === "vi"
+                      ? "Chưa có đủ dữ liệu"
+                      : "Not enough data"
+                  }
+                  description={
+                    lang === "vi"
+                      ? "Thêm giao dịch chi tiêu để xem biểu đồ xu hướng."
+                      : "Add expense transactions to see the trend chart."
+                  }
+                  className="h-full border-0 bg-transparent"
+                />
               )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Panel>
+
+          {/* Giao dịch gần nhất */}
+          <Panel className="lg:col-span-3">
+            <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6">
+              <CardTitle className="flex items-center text-base text-primary sm:text-lg">
+                <CreditCard
+                  className="mr-2 h-4 w-4 sm:h-5 sm:w-5"
+                  aria-hidden="true"
+                />
+                {t("home.recentTransactions")}
+              </CardTitle>
+              <button
+                onClick={() => (window.location.href = "/transactions")}
+                className="rounded-md text-xs font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                {t("common.viewAll")}
+              </button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {isLoading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3 py-2">
+                        <div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-accent" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-1/3 animate-pulse rounded-md bg-accent" />
+                          <div className="h-3 w-1/4 animate-pulse rounded-md bg-accent" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : recentTransactions.length === 0 ? (
+                  <p className="py-10 text-center text-sm text-muted-foreground">
+                    {lang === "vi"
+                      ? "Chưa có giao dịch nào."
+                      : "No transactions yet."}
+                  </p>
+                ) : (
+                  recentTransactions.map((t) => (
+                    <TransactionItem
+                      key={t.id}
+                      name={
+                        t.note ||
+                        t.categories?.name ||
+                        (lang === "vi" ? "Giao dịch" : "Transaction")
+                      }
+                      category={
+                        t.categories?.name || (lang === "vi" ? "Khác" : "Other")
+                      }
+                      amount={`${Number(t.amount).toLocaleString(currencyFormat)} ${currencySymbol}`}
+                      type={t.type}
+                      date={new Date(t.date).toLocaleDateString(currencyFormat)}
+                      icon={
+                        (t.categories?.name && iconMap[t.categories.name]) ||
+                        Wallet
+                      }
+                    />
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Panel>
+        </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

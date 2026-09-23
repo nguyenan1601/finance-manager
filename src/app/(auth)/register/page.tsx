@@ -122,8 +122,8 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md border-none shadow-xl">
         <CardHeader className="space-y-1 text-center font-sans">
           <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-              <TrendingUp className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+              <TrendingUp className="h-6 w-6" aria-hidden="true" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -137,10 +137,14 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <User
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="name"
                   type="text"
+                  aria-label="Họ và tên"
                   placeholder="Họ và tên của bạn"
                   required
                   value={formData.name}
@@ -153,10 +157,14 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="email"
                   type="email"
+                  aria-label="Email"
                   placeholder="email@example.com"
                   required
                   value={formData.email}
@@ -169,10 +177,14 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="password"
                   type="password"
+                  aria-label="Mật khẩu"
                   placeholder="Mật khẩu (ít nhất 6 ký tự)"
                   required
                   minLength={6}
@@ -186,21 +198,27 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-destructive font-medium">{error}</p>
+              <p role="alert" className="text-sm font-medium text-destructive">
+                {error}
+              </p>
             )}
 
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 font-semibold group rounded-xl"
+              aria-busy={isLoading}
+              className="w-full h-11 font-semibold group rounded-lg"
               size="lg"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
               ) : (
                 <>
                   Tạo tài khoản
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight
+                    className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
                 </>
               )}
             </Button>
@@ -219,12 +237,16 @@ export default function RegisterPage() {
 
           <Button
             variant="outline"
-            className="w-full h-11 rounded-xl"
+            className="w-full h-11 rounded-lg"
             size="lg"
             onClick={handleGoogleLogin}
             disabled={isLoading}
           >
-            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            <svg
+              className="mr-2 h-4 w-4"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
