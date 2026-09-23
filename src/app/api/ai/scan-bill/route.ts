@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const google = createGoogleGenerativeAI({ apiKey: randomKey });
 
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-3.6-flash"),
       messages: [
         {
           role: "user",

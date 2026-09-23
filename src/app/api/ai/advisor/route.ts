@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const google = createGoogleGenerativeAI({ apiKey: randomKey });
 
     const result = streamText({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-3.6-flash"),
       system: `Bạn là trợ lý AI thông minh mang tên Levi AI, được tích hợp trong ứng dụng quản lý tài chính cá nhân.
 
 VAI TRÒ CHÍNH - TRỢ LÝ TÀI CHÍNH:

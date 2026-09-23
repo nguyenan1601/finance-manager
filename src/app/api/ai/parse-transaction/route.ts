@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     const google = createGoogleGenerativeAI({ apiKey: randomKey });
 
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-3.6-flash"),
       system: SYSTEM_PROMPT.replace("[USD_TO_VND]", usdToVnd.toString()),
       prompt: `Hôm nay: ${today}. Tỷ giá hiện tại: 1$ = ${usdToVnd} VND. Hãy parse văn bản sau: "${text}"`,
       schema: transactionSchema,
