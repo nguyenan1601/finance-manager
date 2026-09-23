@@ -102,3 +102,87 @@ npm run dev
 ```
 
 Mở [http://localhost:3000](http://localhost:3000) để xem kết quả.
+
+## 🔄 Dùng Nhà Cung Cấp AI Khác (tùy chọn)
+
+Mặc định dự án dùng **DeepSeek** qua Vercel AI SDK. Có thể đổi sang nhà cung cấp khác (OpenAI, Anthropic, Google, OpenRouter, mô hình chạy local...) bằng cách thay provider trong 3 tuyến API.
+
+### Các tệp cần sửa
+
+| Tệp | Nội dung cần đổi |
+|---|---|
+| `src/app/api/ai/parse-transaction/route.ts` | `createDeepSeek(...)` → provider mới; `deepseek("deepseek-flash")` → model mới |
+| `src/app/api/ai/scan-bill/route.ts` | như trên (**bắt buộc model mới phải đọc được ảnh**) |
+| `src/app/api/ai/advisor/route.ts` | như trên |
+| `src/lib/ai-keys.ts` | Tên biến môi trường và thông báo lỗi |
+| `.env.local` | Tên biến + khóa API mới |
+| `tests/api/*.test.ts`, `tests/unit/lib/ai-keys.test.ts` | Tên biến môi trường trong test |
+| `.github/workflows/ci.yml` | Tên secret dùng ở job `build` và `e2e` |
+| `package.json` | Gói provider mới |
+
+### Ví dụ: đổi sang OpenAI
+
+```bash
+# Đúng dòng phiên bản của AI SDK (dự án dùng ai@6) — xem mục "3 điều kiện" bên dưới
+npm install @ai-sdk/openai@ai-v6
+```
+
+```ts
+import { createOpenAI } from "@ai-sdk/openai";
+
+const provider = createOpenAI({
+  apiKey: pickApiKey(process.env.OPENAI_API_KEYS),
+});
+
+// ...
+model: provider("<model-id-của-bạn>"),
+```
+
+> `@ai-sdk/openai` vốn đã có sẵn trong `dependencies` của dự án. Nếu dùng nhà cung cấp tương thích OpenAI (OpenRouter, Groq, LM Studio, vLLM...), chỉ cần thêm `baseURL` vào `createOpenAI({ baseURL: "...", apiKey: ... })`.
+
+### ⚠️ Ba điều kiện bắt buộc
+
+1. **Chọn đúng dòng phiên bản của AI SDK.** Dự án dùng `ai@6`. Mỗi gói provider có nhiều dòng phiên bản song song; cài sai dòng sẽ lỗi type. Kiểm tra bằng `npm view <tên-gói> dist-tags` rồi chọn tag **`ai-v6`** (đừng dùng `latest` nếu nó thuộc dòng khác).
+2. **Model phải hỗ trợ ảnh (vision)**, vì route `scan-bill` gửi ảnh hóa đơn dạng data URL cho model. Nếu model không đọc được ảnh thì phải hoặc giữ DeepSeek cho riêng route này, hoặc tắt tính năng quét hóa đơn — đừng để nó âm thầm hỏng.
+3. **Model cần hỗ trợ JSON output** cho `generateObject`. Nếu không hỗ trợ gốc, AI SDK sẽ chuyển sang *compatibility mode* (chèn schema vào system message) — chương trình vẫn chạy nhưng schema **không được API cưỡng chế**, nên kết quả trả về cần được kiểm tra kỹ hơn.
+
+### Kiểm tra sau khi đổi
+
+```bash
+npm run lint && npm run typecheck && npm run test:unit && npm run build
+```
+
+Sau đó chạy `npm run dev` và thử cả 3 tuyến: nhập liệu bằng câu tự nhiên, quét một ảnh hóa đơn, và chat với trợ lý — để chắc chắn JSON mode, vision và streaming đều hoạt động.
+
+<details>
+<summary><b>🤖 Prompt sẵn để giao cho AI khác thực hiện việc đổi provider</b></summary>
+
+Chép nguyên khối dưới đây, thay phần trong dấu `<>`, rồi đưa cho AI agent đang mở repo:
+
+```text
+Bạn đang làm việc trong repo Next.js 16 (App Router) + TypeScript, dùng Vercel AI SDK v6 (gói `ai`) cho 3 tuyến API AI.
+
+Nhiệm vụ: chuyển 3 tuyến API từ DeepSeek sang <NHÀ CUNG CẤP>, model <MODEL_ID>.
+
+Bối cảnh code hiện tại:
+- src/app/api/ai/parse-transaction/route.ts — generateObject, có `export const runtime = "edge"`.
+- src/app/api/ai/scan-bill/route.ts — generateObject VÀ gửi ảnh hóa đơn (data URL base64) cho model.
+- src/app/api/ai/advisor/route.ts — streamText.
+- Mỗi route tạo provider bằng createDeepSeek({ apiKey: pickApiKey(process.env.DEEPSEEK_API_KEYS) }) rồi gọi deepseek("deepseek-flash").
+- src/lib/ai-keys.ts chứa parseApiKeys() và pickApiKey(): đọc biến môi trường gồm nhiều khóa ngăn cách bằng dấu phẩy, chọn ngẫu nhiên 1 khóa mỗi lần gọi, và ném lỗi rõ ràng khi danh sách rỗng.
+- Test hiện mock module "ai" (không mock provider): tests/api/*.test.ts đặt process.env.DEEPSEEK_API_KEYS = "key-1"; tests/api/parse-transaction.test.ts assert /No DeepSeek API key/; tests/unit/lib/ai-keys.test.ts assert /No DeepSeek API key configured/.
+- .github/workflows/ci.yml dùng secrets.DEEPSEEK_API_KEYS ở job build và e2e.
+
+Yêu cầu:
+1. Cài gói provider chính thức của AI SDK cho nhà cung cấp đó, ĐÚNG dòng tương thích ai@6: chạy `npm view <tên-gói> dist-tags` và chọn tag `ai-v6`, không dùng `latest` nếu latest thuộc dòng phiên bản khác.
+2. Đổi cả 3 route sang provider mới. Giữ nguyên logic nghiệp vụ, prompt hệ thống, schema zod, cách xử lý lỗi (trả 500 kèm error + details) và runtime edge.
+3. Model phải hỗ trợ ảnh vì scan-bill gửi ảnh. Nếu model không hỗ trợ ảnh, dừng lại và báo cho tôi biết, đừng âm thầm làm hỏng tính năng quét hóa đơn.
+4. Đổi tên biến môi trường thành <PROVIDER>_API_KEYS, giữ nguyên cơ chế nhiều khóa và thông báo lỗi rõ ràng trong src/lib/ai-keys.ts. Cập nhật .env.local, ci.yml và README cho khớp.
+5. Cập nhật toàn bộ test liên quan.
+6. Xác minh: npm run lint && npm run typecheck && npm run test:unit && npm run build. Sửa cho tới khi tất cả đều xanh.
+7. Nếu tôi đã cấu hình khóa thật, chạy dev server và gọi thử cả 3 route để chứng minh JSON mode, vision và streaming hoạt động; báo lại kết quả thực tế kèm output, không chỉ nói "đã xong".
+8. Không commit và không push trừ khi tôi yêu cầu.
+```
+
+</details>
+
