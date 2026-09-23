@@ -1,4 +1,4 @@
-name: CI - Build & Lint
+name: CI
 
 on:
   push:
@@ -6,31 +6,130 @@ on:
   pull_request:
     branches: [master]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    name: Build Next.js App
+  quality:
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-
       - name: Install dependencies
         run: npm ci
-
       - name: Lint
         run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
 
+  unit:
+    name: Unit, API & Component Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Tests with coverage gate
+        run: npm run test:cov
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+
+  build:
+    name: Build Next.js App
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
       - name: Build
         run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+
+  security:
+    name: RLS & Auth Isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Write test environment
+        run: |
+          cat > .env.test <<EOF
+          TARGET_SUPABASE_URL=${{ secrets.TARGET_SUPABASE_URL }}
+          TARGET_SUPABASE_ANON_KEY=${{ secrets.TARGET_SUPABASE_ANON_KEY }}
+          TARGET_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TARGET_SUPABASE_SERVICE_ROLE_KEY }}
+          ALLOW_WRITES_TO_LIVE=1
+          EOF
+      - name: Cross-tenant isolation suite
+        run: npm run test:security
+
+  e2e:
+    name: E2E, Responsive & Accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Write app environment
+        run: |
+          cat > .env.local <<EOF
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TARGET_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TARGET_SUPABASE_ANON_KEY }}
+          GEMINI_API_KEYS=${{ secrets.GEMINI_API_KEYS }}
+          EOF
+      - name: Write test environment
+        run: |
+          cat > .env.test <<EOF
+          TARGET_SUPABASE_URL=${{ secrets.TARGET_SUPABASE_URL }}
+          TARGET_SUPABASE_ANON_KEY=${{ secrets.TARGET_SUPABASE_ANON_KEY }}
+          TARGET_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TARGET_SUPABASE_SERVICE_ROLE_KEY }}
+          E2E_BASE_URL=http://localhost:3000
+          ALLOW_WRITES_TO_LIVE=1
+          EOF
+      - name: Seed fixture accounts
+        run: npm run seed:test
+      - name: Run Playwright
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
