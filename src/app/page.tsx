@@ -33,11 +33,11 @@ import {
   YAxis as ReYAxis,
   CartesianGrid as ReCartesianGrid,
   Tooltip as ReTooltip,
-  ResponsiveContainer as ReResponsiveContainer,
 } from "recharts";
-import { format, subMonths } from "date-fns";
 import { useTranslation } from "@/hooks/use-translation";
 import { enUS, vi as viLocale } from "date-fns/locale";
+import { buildCashflowMonths, getDashboardStats } from "@/lib/analytics";
+import { ResponsiveChart } from "@/components/common/chart-frame";
 import {
   CHART_CURSOR,
   CHART_EXPENSE,
@@ -78,67 +78,16 @@ export default function Home() {
     setIsLoading(true);
     try {
       const transactions = await db.getTransactions();
-
-      // Calculate stats
       const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      let totalBalance = 0;
-      let monthlyIncome = 0;
-      let monthlyExpense = 0;
-
-      transactions?.forEach((t: Transaction) => {
-        const amount = Number(t.amount);
-        if (t.type === "income") {
-          totalBalance += amount;
-        } else {
-          totalBalance -= amount;
-        }
-
-        const tDate = new Date(t.date);
-        if (tDate >= firstDayOfMonth) {
-          if (t.type === "income") {
-            monthlyIncome += amount;
-          } else {
-            monthlyExpense += amount;
-          }
-        }
-      });
-
-      setStats({
-        totalBalance,
-        monthlyIncome,
-        monthlyExpense,
-        transactionCount:
-          transactions?.filter(
-            (t: Transaction) => new Date(t.date) >= firstDayOfMonth,
-          ).length || 0,
-      });
-
-      // Calculate Chart Data (Spending Trend - last 6 months)
       const currentLocale = lang === "vi" ? viLocale : enUS;
-      const months = Array.from({ length: 6 }, (_, i) => ({
-        date: subMonths(new Date(), i),
-        name: format(subMonths(new Date(), i), "MMM", {
-          locale: currentLocale,
-        }),
-        expense: 0,
-      })).reverse();
 
-      transactions?.forEach((t: Transaction) => {
-        if (t.type === "expense") {
-          const tDate = new Date(t.date);
-          months.forEach((m) => {
-            if (
-              tDate.getMonth() === m.date.getMonth() &&
-              tDate.getFullYear() === m.date.getFullYear()
-            ) {
-              m.expense += Number(t.amount);
-            }
-          });
-        }
-      });
-      setChartData(months);
+      setStats(getDashboardStats(transactions || [], now));
+
+      setChartData(
+        buildCashflowMonths(transactions || [], now, currentLocale).map(
+          (month) => ({ name: month.name, expense: month.expense }),
+        ),
+      );
 
       setRecentTransactions(transactions?.slice(0, 6) || []);
     } catch (error: unknown) {
@@ -228,7 +177,7 @@ export default function Home() {
               {isLoading ? (
                 <ChartSkeleton className="h-full px-4" />
               ) : hasChartData ? (
-                <ReResponsiveContainer width="100%" height="100%">
+                <ResponsiveChart className="h-full">
                   <ReBarChart data={chartData}>
                     <ReCartesianGrid
                       strokeDasharray="3 3"
@@ -269,7 +218,7 @@ export default function Home() {
                       activeBar={{ fill: CHART_EXPENSE, opacity: 0.85 }}
                     />
                   </ReBarChart>
-                </ReResponsiveContainer>
+                </ResponsiveChart>
               ) : (
                 <EmptyState
                   icon={TrendingUp}

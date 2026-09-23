@@ -6,6 +6,7 @@ import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
 import { Bot, User, Send, Loader2, Sparkles, RotateCcw } from "lucide-react";
 import { db, Transaction } from "@/lib/db";
+import { buildFinancialSummary } from "@/lib/financial-summary";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,85 +64,6 @@ function clearMessages(): void {
   } catch {
     // silently ignore
   }
-}
-
-// Build financial summary from transactions
-function buildFinancialSummary(
-  transactions: Transaction[],
-  lang: string,
-): string {
-  const isVi = lang === "vi";
-  if (!transactions || transactions.length === 0) {
-    return isVi
-      ? "Người dùng chưa có giao dịch nào."
-      : "User has no transactions yet.";
-  }
-
-  const currencyFormat = isVi ? "vi-VN" : "en-US";
-  const currencySymbol = isVi ? "đ" : "$";
-
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-  const totalExpense = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-  const balance = totalIncome - totalExpense;
-
-  // Group expenses by category
-  const expenseByCategory: Record<string, number> = {};
-  transactions
-    .filter((t) => t.type === "expense")
-    .forEach((t) => {
-      const cat = t.categories?.name || (isVi ? "Khác" : "Other");
-      expenseByCategory[cat] = (expenseByCategory[cat] || 0) + Number(t.amount);
-    });
-
-  const categoryBreakdown = Object.entries(expenseByCategory)
-    .sort(([, a], [, b]) => b - a)
-    .map(
-      ([cat, amt]) =>
-        `  - ${cat}: ${amt.toLocaleString(currencyFormat)}${currencySymbol}`,
-    )
-    .join("\n");
-
-  const recentList = transactions
-    .slice(0, 15)
-    .map(
-      (t) =>
-        `  - ${t.date}: ${t.type === "income" ? (isVi ? "Thu" : "In") : isVi ? "Chi" : "Ex"} ${Number(t.amount).toLocaleString(currencyFormat)}${currencySymbol} - ${t.categories?.name || (isVi ? "Khác" : "Other")} (${t.note || (isVi ? "không ghi chú" : "no note")})`,
-    )
-    .join("\n");
-
-  if (isVi) {
-    return [
-      `TỔNG QUAN TÀI CHÍNH:`,
-      `- Tổng thu nhập: ${totalIncome.toLocaleString("vi-VN")}đ`,
-      `- Tổng chi tiêu: ${totalExpense.toLocaleString("vi-VN")}đ`,
-      `- Số dư hiện tại: ${balance.toLocaleString("vi-VN")}đ`,
-      `- Số giao dịch: ${transactions.length}`,
-      ``,
-      `CHI TIÊU THEO DANH MỤC:`,
-      categoryBreakdown,
-      ``,
-      `GIAO DỊCH GẦN ĐÂY (${Math.min(15, transactions.length)} gần nhất):`,
-      recentList,
-    ].join("\n");
-  }
-
-  return [
-    `FINANCIAL OVERVIEW:`,
-    `- Total Income: ${totalIncome.toLocaleString("en-US")}$`,
-    `- Total Expenses: ${totalExpense.toLocaleString("en-US")}$`,
-    `- Current Balance: ${balance.toLocaleString("en-US")}$`,
-    `- Number of Transactions: ${transactions.length}`,
-    ``,
-    `EXPENSES BY CATEGORY:`,
-    categoryBreakdown,
-    ``,
-    `RECENT TRANSACTIONS (Last ${Math.min(15, transactions.length)}):`,
-    recentList,
-  ].join("\n");
 }
 
 // Module-level variable to store financial data — avoids ref-during-render issue
@@ -258,7 +180,7 @@ export function AdvisorChat() {
             <CardTitle className="text-base sm:text-lg text-primary-foreground font-bold">
               {lang === "vi" ? "Trợ lý Levi AI" : "Levi AI Assistant"}
             </CardTitle>
-            <p className="text-xs text-primary-foreground/70">
+            <p className="text-xs text-primary-foreground">
               {isLoading
                 ? lang === "vi"
                   ? "Đang trả lời..."

@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamText, convertToModelMessages } from "ai";
+import { pickApiKey } from "@/lib/ai-keys";
 
 export async function POST(req: Request) {
   try {
@@ -11,12 +12,9 @@ export async function POST(req: Request) {
     // Convert UI messages to model messages for streamText
     const modelMessages = await convertToModelMessages(uiMessages);
 
-    // Get random API Key from list
-    const apiKeys = (process.env.GEMINI_API_KEYS || "")
-      .split(",")
-      .filter(Boolean);
-    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
-    const google = createGoogleGenerativeAI({ apiKey: randomKey });
+    const google = createGoogleGenerativeAI({
+      apiKey: pickApiKey(process.env.GEMINI_API_KEYS),
+    });
 
     const result = streamText({
       model: google("gemini-3.6-flash"),

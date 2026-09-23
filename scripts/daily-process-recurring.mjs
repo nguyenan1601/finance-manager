@@ -7,6 +7,8 @@
  * Meant to be called via GitHub Actions scheduled workflow.
  */
 
+import { pathToFileURL } from "node:url";
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -25,27 +27,45 @@ const headers = {
   Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
 };
 
+/** Adds whole months in UTC, clamping to the last day of the target month. */
+function addUtcMonths(date, months) {
+  const day = date.getUTCDate();
+  date.setUTCDate(1);
+  date.setUTCMonth(date.getUTCMonth() + months);
+  const lastDay = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  date.setUTCDate(Math.min(day, lastDay));
+}
+
 /**
  * Advance next_date based on frequency.
+ *
+ * Month/year steps clamp to the last valid day (31 Jan + 1 month -> 28/29 Feb)
+ * instead of overflowing into the next month, and all maths runs in UTC so the
+ * result does not depend on the machine timezone.
  */
-function advanceDate(currentDate, frequency) {
-  const d = new Date(currentDate);
+export function advanceDate(currentDate, frequency) {
+  const [year, month, day] = String(currentDate).split("-").map(Number);
+  const d = new Date(Date.UTC(year, month - 1, day));
+
   switch (frequency) {
     case "daily":
-      d.setDate(d.getDate() + 1);
+      d.setUTCDate(d.getUTCDate() + 1);
       break;
     case "weekly":
-      d.setDate(d.getDate() + 7);
+      d.setUTCDate(d.getUTCDate() + 7);
       break;
     case "monthly":
-      d.setMonth(d.getMonth() + 1);
+      addUtcMonths(d, 1);
       break;
     case "yearly":
-      d.setFullYear(d.getFullYear() + 1);
+      addUtcMonths(d, 12);
       break;
     default:
-      d.setMonth(d.getMonth() + 1); // fallback to monthly
+      addUtcMonths(d, 1); // fallback to monthly
   }
+
   return d.toISOString().slice(0, 10);
 }
 
@@ -142,4 +162,10 @@ async function main() {
   if (failCount > 0) process.exit(1);
 }
 
-main();
+const isDirectRun =
+  Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  main();
+}

@@ -46,6 +46,7 @@ import { Panel } from "@/components/common/panel";
 import { EmptyState } from "@/components/common/empty-state";
 import { ListSkeleton, TableSkeleton } from "@/components/common/skeletons";
 import { amountTone } from "@/lib/ui";
+import { CSV_BOM, toCsv } from "@/lib/csv";
 
 interface Transaction {
   id: string;
@@ -184,13 +185,7 @@ export default function TransactionsPage() {
         t.amount,
       ]);
 
-      const csvContent = [
-        headers.join(","),
-        ...rows.map((row) => row.join(",")),
-      ].join("\n");
-
-      const BOM = "\uFEFF";
-      const blob = new Blob([BOM + csvContent], {
+      const blob = new Blob([CSV_BOM + toCsv(headers, rows)], {
         type: "text/csv;charset=utf-8;",
       });
 

@@ -43,7 +43,6 @@ import { cn } from "@/lib/utils";
 import {
   db,
   Budget,
-  Transaction,
   Category,
   RecurringTransaction,
 } from "@/lib/db";
@@ -57,6 +56,11 @@ import {
   StatCardSkeleton,
 } from "@/components/common/skeletons";
 import { amountTone, categoryColor } from "@/lib/ui";
+import {
+  getBudgetProgress,
+  getBudgetTotals,
+  getMonthlyExpensesByCategory,
+} from "@/lib/analytics";
 
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -121,19 +125,9 @@ export default function BudgetsPage() {
       setAllCategories(allCatData || []);
       setRecurringTransactions(recurringData || []);
 
-      // Calculate monthly expenses per category
-      const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      const expenses: Record<string, number> = {};
-      transactionData?.forEach((t: Transaction) => {
-        const tDate = new Date(t.date);
-        if (t.type === "expense" && tDate >= firstDayOfMonth) {
-          expenses[t.category_id] =
-            (expenses[t.category_id] || 0) + Number(t.amount);
-        }
-      });
-      setMonthlyExpenses(expenses);
+      setMonthlyExpenses(
+        getMonthlyExpensesByCategory(transactionData || [], new Date()),
+      );
     } catch (error) {
       console.error("Error fetching budget data:", error);
     } finally {
@@ -340,11 +334,11 @@ export default function BudgetsPage() {
   };
 
   // Calculate totals
-  const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
-  const totalSpentInBudgets = budgets.reduce((sum, b) => {
-    return sum + (monthlyExpenses[b.category_id] || 0);
-  }, 0);
-  const remainingBudget = Math.max(0, totalBudgeted - totalSpentInBudgets);
+  const {
+    totalBudgeted,
+    totalSpent: totalSpentInBudgets,
+    remaining: remainingBudget,
+  } = getBudgetTotals(budgets, monthlyExpenses);
 
   const currencyFormat = lang === "vi" ? "vi-VN" : "en-US";
   const currencySymbol = lang === "vi" ? "₫" : "$";
@@ -508,10 +502,8 @@ export default function BudgetsPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {budgets.map((budget) => {
                   const spent = monthlyExpenses[budget.category_id] || 0;
-                  const percent = Math.round((spent / budget.amount) * 100);
-                  const progressWidth = Math.min(percent, 100);
-                  const isOver = spent > budget.amount;
-                  const isWarning = percent > 85 && !isOver;
+                  const { percent, progressWidth, isOver, isWarning } =
+                    getBudgetProgress(spent, budget.amount);
 
                   return (
                     <Panel

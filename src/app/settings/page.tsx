@@ -512,9 +512,11 @@ export default function SettingsPage() {
                   {t("settings.changePassword")}
                 </Button>
               </div>
-              <div className="flex cursor-not-allowed items-center justify-between border-b py-4 opacity-50">
+              <div className="flex cursor-not-allowed items-center justify-between border-b py-4">
                 <div className="space-y-1">
-                  <p className="text-sm font-bold">{t("settings.twoFactor")}</p>
+                  <p className="text-sm font-bold text-muted-foreground">
+                    {t("settings.twoFactor")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {lang === "vi"
                       ? "Tăng cường bảo mật qua số điện thoại."

@@ -1,6 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { pickApiKey } from "@/lib/ai-keys";
 
 export async function POST(req: Request) {
   try {
@@ -14,12 +15,9 @@ export async function POST(req: Request) {
 
     const today = currentDate || new Date().toISOString().split("T")[0];
 
-    // Get random API Key from list
-    const apiKeys = (process.env.GEMINI_API_KEYS || "")
-      .split(",")
-      .filter(Boolean);
-    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
-    const google = createGoogleGenerativeAI({ apiKey: randomKey });
+    const google = createGoogleGenerativeAI({
+      apiKey: pickApiKey(process.env.GEMINI_API_KEYS),
+    });
 
     const { object } = await generateObject({
       model: google("gemini-3.6-flash"),

@@ -13,7 +13,6 @@ import {
   YAxis as ReYAxis,
   CartesianGrid as ReCartesianGrid,
   Tooltip as ReTooltip,
-  ResponsiveContainer as ReResponsiveContainer,
   PieChart as RePieChart,
   Pie as RePie,
   Cell as ReCell,
@@ -27,8 +26,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { db, Transaction } from "@/lib/db";
-import { format, subMonths } from "date-fns";
 import { PageHeader } from "@/components/common/page-header";
+import {
+  buildCashflowMonths,
+  getCategoryBreakdown,
+  summarizeCashflow,
+} from "@/lib/analytics";
+import { ResponsiveChart } from "@/components/common/chart-frame";
 import { PageShell } from "@/components/common/page-shell";
 import { Panel } from "@/components/common/panel";
 import { EmptyState } from "@/components/common/empty-state";
@@ -87,75 +91,16 @@ export default function ReportsPage() {
       }
 
       const currentLocale = lang === "vi" ? vi : enUS;
+      const now = new Date();
 
-      // 1. Calculate Monthly Trend (Last 6 months)
-      const months: MonthlyData[] = Array.from({ length: 6 }, (_, i) => ({
-        date: subMonths(new Date(), i),
-        name: format(subMonths(new Date(), i), "MMM", {
-          locale: currentLocale,
-        }),
-        income: 0,
-        expense: 0,
-      })).reverse();
-
-      transactions.forEach((item) => {
-        const tDate = new Date(item.date);
-        const amount = Number(item.amount);
-        months.forEach((m) => {
-          if (
-            tDate.getMonth() === m.date.getMonth() &&
-            tDate.getFullYear() === m.date.getFullYear()
-          ) {
-            if (item.type === "income") m.income += amount;
-            else m.expense += amount;
-          }
-        });
-      });
+      const months = buildCashflowMonths(transactions, now, currentLocale);
       setMonthlyData(months);
 
-      // 2. Category Breakdown (Current Month)
-      const now = new Date();
-      const currentMonthExpenses = transactions.filter(
-        (t) =>
-          t.type === "expense" &&
-          new Date(t.date).getMonth() === now.getMonth() &&
-          new Date(t.date).getFullYear() === now.getFullYear(),
+      setCategoryData(
+        getCategoryBreakdown(transactions, now, t("common.other"), CHART_COLORS),
       );
 
-      const catMap: Record<
-        string,
-        { name: string; value: number; color: string }
-      > = {};
-
-      currentMonthExpenses.forEach((item) => {
-        const catName = item.categories?.name || t("common.other");
-        const catColor =
-          item.categories?.color ||
-          CHART_COLORS[Object.keys(catMap).length % CHART_COLORS.length];
-        if (!catMap[catName]) {
-          catMap[catName] = {
-            name: catName,
-            value: 0,
-            color: catColor,
-          };
-        }
-        catMap[catName].value += Number(item.amount);
-      });
-      setCategoryData(Object.values(catMap));
-
-      // 3. Summary stats
-      const totalIncome = months.reduce((sum, m) => sum + m.income, 0);
-      const totalExpense = months.reduce((sum, m) => sum + m.expense, 0);
-      const count =
-        months.filter((m) => m.income > 0 || m.expense > 0).length || 1;
-
-      setSummary({
-        avgIncome: totalIncome / count,
-        avgExpense: totalExpense / count,
-        totalSavings: totalIncome - totalExpense,
-        incomeTrend: 0, // Simplified for now
-        expenseTrend: 0,
-      });
+      setSummary(summarizeCashflow(months));
     } catch (error) {
       console.error("Error fetching report data:", error);
     } finally {
@@ -332,7 +277,7 @@ export default function ReportsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="h-[280px] px-1 pt-4 sm:h-[400px] sm:px-6 sm:pt-6">
-                  <ReResponsiveContainer width="100%" height="100%">
+                  <ResponsiveChart className="h-full">
                     <ReBarChart data={monthlyData}>
                       <ReCartesianGrid
                         strokeDasharray="3 3"
@@ -385,7 +330,7 @@ export default function ReportsPage() {
                         barSize={30}
                       />
                     </ReBarChart>
-                  </ReResponsiveContainer>
+                  </ResponsiveChart>
                 </CardContent>
               </Panel>
             </TabsContent>
@@ -407,7 +352,7 @@ export default function ReportsPage() {
                   <CardContent className="relative flex h-[280px] items-center justify-center sm:h-[350px]">
                     {categoryData.length > 0 ? (
                       <>
-                        <ReResponsiveContainer width="100%" height="100%">
+                        <ResponsiveChart className="h-full w-full">
                           <RePieChart>
                             <RePie
                               data={categoryData}
@@ -434,7 +379,7 @@ export default function ReportsPage() {
                               ]}
                             />
                           </RePieChart>
-                        </ReResponsiveContainer>
+                        </ResponsiveChart>
                         <div className="pointer-events-none absolute flex flex-col items-center justify-center">
                           <span className="text-2xl font-bold">
                             {lang === "vi"

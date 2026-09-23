@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { vi, en, Language } from "@/lib/i18n/dictionaries";
+import { resolveTranslation } from "@/lib/i18n/translate";
 import { supabase } from "@/lib/supabase";
 
 type I18nContextType = {
@@ -47,29 +48,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("lang", newLang);
   };
 
-  const t = (path: string, variables?: Record<string, string | number>) => {
-    const dict = lang === "vi" ? vi : en;
-    const keys = path.split(".");
-
-    let result: Record<string, unknown> = dict;
-    for (const key of keys) {
-      if (result[key] === undefined) return path;
-      result = result[key] as Record<string, unknown>;
-    }
-
-    if (typeof result !== "string") return path;
-
-    if (variables) {
-      return Object.entries(variables).reduce(
-        (acc: string, [key, val]) => {
-          return acc.replace(`{${key}}`, String(val));
-        },
-        result as unknown as string,
-      );
-    }
-
-    return result as unknown as string;
-  };
+  const t = (path: string, variables?: Record<string, string | number>) =>
+    resolveTranslation(lang === "vi" ? vi : en, path, variables);
 
   return (
     <I18nContext.Provider value={{ lang, setLang, t }}>
