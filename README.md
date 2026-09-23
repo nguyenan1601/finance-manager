@@ -32,7 +32,7 @@
 
 ## 🛠️ Công Nghệ Sử Dụng
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS, Shadcn UI, Lucide React
 - **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL)
@@ -46,7 +46,7 @@
 
 ```bash
 git clone https://github.com/nguyenan1601/finance-manager.git
-cd finance-manager/finance-app
+cd finance-manager
 ```
 
 ### 2. Cài đặt dependencies
@@ -59,13 +59,15 @@ yarn install
 
 ### 3. Cấu hình biến môi trường
 
-Tạo file `.env` ở thư mục gốc của `finance-app` và thêm các thông tin sau:
+Tạo file `.env.local` ở thư mục gốc dự án và thêm các thông tin sau:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
+DEEPSEEK_API_KEYS=your_deepseek_api_key
 ```
+
+> Khóa AI lấy tại [platform.deepseek.com](https://platform.deepseek.com/). Có thể cấu hình nhiều khóa ngăn cách bằng dấu phẩy (`key1,key2,key3`) — mỗi lần gọi API hệ thống chọn ngẫu nhiên một khóa để phân tải.
 
 ### 4. Thiết lập Database (Supabase)
 
