@@ -6,9 +6,18 @@ on:
   pull_request:
     branches: [master]
 
+# Least privilege: every job only reads the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+# Node 20 is deprecated on GitHub runners (actions are forced onto Node 24), and
+# the suite was verified on Node 24, so the project targets it too.
+env:
+  NODE_VERSION: "24"
 
 jobs:
   quality:
@@ -16,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
       - name: Install dependencies
         run: npm ci
@@ -33,10 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
       - name: Install dependencies
         run: npm ci
@@ -44,7 +53,7 @@ jobs:
         run: npm run test:cov
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: coverage/
@@ -55,32 +64,54 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+      # Compiled as a smoke check. NEXT_PUBLIC_* values are inlined into the
+      # bundle at build time, and the real values live in the Vercel project, so
+      # placeholders are used when the secrets are not configured.
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS || 'placeholder-gemini-key' }}
 
+  # These two jobs talk to the live Supabase project with the service role key, so
+  # they only run where that secret exists (not on pull requests from forks) and
+  # they fail with an explicit message when a secret is missing.
   security:
     name: RLS & Auth Isolation
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+      - name: Check required secrets
+        env:
+          URL: ${{ secrets.TARGET_SUPABASE_URL }}
+          ANON: ${{ secrets.TARGET_SUPABASE_ANON_KEY }}
+          SERVICE: ${{ secrets.TARGET_SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          missing=""
+          [ -z "$URL" ] && missing="$missing TARGET_SUPABASE_URL"
+          [ -z "$ANON" ] && missing="$missing TARGET_SUPABASE_ANON_KEY"
+          [ -z "$SERVICE" ] && missing="$missing TARGET_SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "Add them under Settings -> Secrets and variables -> Actions (see .env.test.example)."
+            exit 1
+          fi
       - name: Write test environment
         run: |
           cat > .env.test <<EOF
@@ -96,16 +127,32 @@ jobs:
     name: E2E, Responsive & Accessibility
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
+      - name: Check required secrets
+        env:
+          URL: ${{ secrets.TARGET_SUPABASE_URL }}
+          ANON: ${{ secrets.TARGET_SUPABASE_ANON_KEY }}
+          SERVICE: ${{ secrets.TARGET_SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          missing=""
+          [ -z "$URL" ] && missing="$missing TARGET_SUPABASE_URL"
+          [ -z "$ANON" ] && missing="$missing TARGET_SUPABASE_ANON_KEY"
+          [ -z "$SERVICE" ] && missing="$missing TARGET_SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "Add them under Settings -> Secrets and variables -> Actions (see .env.test.example)."
+            exit 1
+          fi
       - name: Write app environment
         run: |
           cat > .env.local <<EOF
@@ -128,7 +175,7 @@ jobs:
         run: npm run test:e2e
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report
           path: playwright-report/

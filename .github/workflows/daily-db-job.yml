@@ -6,6 +6,9 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch: # Cho phép chạy thủ công qua GitHub UI
 
+permissions:
+  contents: read
+
 jobs:
   process-recurring:
     runs-on: ubuntu-latest
@@ -13,12 +16,26 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
+
+      - name: Check required secrets
+        env:
+          URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SERVICE: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          missing=""
+          [ -z "$URL" ] && missing="$missing NEXT_PUBLIC_SUPABASE_URL"
+          [ -z "$SERVICE" ] && missing="$missing SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "Add them under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
 
       - name: Run daily recurring transaction processor
         env:
