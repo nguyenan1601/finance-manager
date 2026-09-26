@@ -1,0 +1,34 @@
+name: Keepalive
+
+# GitHub tự tắt các workflow chạy theo lịch sau 60 ngày repo không có hoạt động
+# (push/PR/chạy tay), và chính các lần chạy của workflow KHÔNG được tính là hoạt
+# động. Workflow này giữ repo luôn "thức" để job xử lý giao dịch định kỳ hằng
+# ngày không bị tắt — và qua đó Supabase không bị tạm dừng vì không hoạt động.
+#
+# Chỉ hành động khi commit gần nhất đã cũ 45 ngày, tức trước mốc 60 ngày của
+# GitHub. Không tạo commit rác: dùng GitHub API (use_api: true).
+
+on:
+  schedule:
+    # Mỗi Chủ nhật 00:00 UTC (07:00 giờ Việt Nam)
+    - cron: "0 0 * * 0"
+  workflow_dispatch: # Cho phép chạy thủ công qua GitHub UI
+
+permissions:
+  actions: write
+
+jobs:
+  keepalive:
+    name: Keep scheduled workflows active
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Keepalive
+        uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          use_api: true
+          time_elapsed: 45
